@@ -215,6 +215,37 @@ namespace MedicalApp_DatabasTeknik
             }
         }
 
+        public void BookAppointment()
+        {
+            Console.WriteLine("Booking an appointment");
+            Console.WriteLine("Choose a day: ");
+            string day = Console.ReadLine();
+            if (day == "")
+            {
+                Console.WriteLine("Day cannot be empty. Please try again.");
+                BookAppointment();
+            }
+            else
+            {
+                Console.WriteLine("Day selected: " + day);
+                // Code to handle appointment booking
+            }
+
+            Console.WriteLine("Choose a time: ");
+            string time = Console.ReadLine();
+            if (time == "")
+            {
+                Console.WriteLine("Time cannot be empty. Please try again.");
+                BookAppointment();
+            }
+            else
+            {
+                Console.WriteLine("Time selected: " + time);
+                // Code to handle appointment booking
+            }
+            Console.WriteLine("Appointment booked successfully for " + day + " at " + time);
+        }
+
         public void PatientInformationHandler ()
         {
             PatientMainMenu();
@@ -233,6 +264,10 @@ namespace MedicalApp_DatabasTeknik
                 { PatientMainMenu(); }
                 else
                 { Console.WriteLine("Invalid choice. Please try again."); }
+            }
+            if (patientChoice == "2")
+            {
+                BookAppointment();
             }
         }
 
