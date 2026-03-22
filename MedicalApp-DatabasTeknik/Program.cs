@@ -26,6 +26,18 @@ namespace MedicalApp_DatabasTeknik
             // Code to handle ID input and validation
         }
 
+        public void FillInPassword()
+        {
+            string password = Console.ReadLine();
+            Console.WriteLine("Fill in your Password: ");
+            if (password == "")
+            {
+                Console.WriteLine("Password cannot be empty. Please try again.");
+                FillInPassword(); // Recursively call the method until a valid password is entered
+            }
+            // Code to handle password input and validation
+        }
+
         // Patient 
         public void PatientMainMenu()
         {
@@ -59,6 +71,150 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("7. Back to Personal Information Menu"); 
         }
 
+        public void FillInPatientFirstName()
+        {
+            Console.WriteLine("Fill in first name: ");
+            string firstName = Console.ReadLine();
+            if (firstName == "")
+            {
+                Console.WriteLine("Name cannot be empty. Please try again.");
+                FillInPatientFirstName(); // Recursively call the method until a valid name is entered
+            }
+            else if (firstName.Any(char.IsDigit))
+            {
+                Console.WriteLine("Name cannot contain numbers. Please try again.");
+                FillInPatientFirstName(); // Recursively call the method until a valid name is entered
+            }
+            else
+            {
+                Console.WriteLine("Name updated successfully.");
+                UpdatePatientPersonalInfoMenu(); // Return to the update menu after successful update
+            }
+            // Code to handle name input and validation
+        }
+
+        public void FillInPatientLastName()
+        {
+            Console.WriteLine("Fill in your Last Name: ");
+            string lastName = Console.ReadLine();
+            if (lastName == "")
+            {
+                Console.WriteLine("Last Name cannot be empty. Please try again.");
+                FillInPatientLastName(); // Recursively call the method until a valid last name is entered
+            }
+            else if (lastName.Any(char.IsDigit))
+            {
+                Console.WriteLine("Last Name cannot contain numbers. Please try again.");
+                FillInPatientLastName(); // Recursively call the method until a valid last name is entered
+            }
+            else
+            {
+                Console.WriteLine("Last Name updated successfully.");
+                UpdatePatientPersonalInfoMenu(); // Return to the update menu after successful update
+            }
+
+            // Code to handle last name input and validation
+        }
+
+        public void FillInPatientGender()
+        {
+            Console.WriteLine("Fill in your gender: ");
+            string gender = Console.ReadLine();
+            if (gender == "")
+            {
+                Console.WriteLine("Gender cannot be empty. Please try again.");
+                FillInPatientGender();
+            }
+            else if (gender.Any(char.IsDigit))
+            {
+                Console.WriteLine("Last Name cannot contain numbers. Please try again.");
+                FillInPatientGender();
+            }
+            else
+            {
+                Console.WriteLine("Gender updated successfully.");
+                UpdatePatientPersonalInfoMenu(); // Return to the update menu after successful update
+            }
+            // Code to handle gender input and validation
+        }
+
+        public void FillInPatientAdress()
+        {
+            Console.WriteLine("Fill in your Adress: ");
+            string adress = Console.ReadLine();
+            if (adress == "")
+            {
+                Console.WriteLine("Adress cannot be empty. Please try again.");
+                FillInPatientAdress();
+            }
+            else
+            {
+                Console.WriteLine("Adress updated successfully.");
+                UpdatePatientPersonalInfoMenu(); // Return to the update menu after successful update
+            }
+            // Code to handle adress input and validation
+        }
+
+        public void FillInPatientPhoneNumber()
+        {
+            Console.WriteLine("Fill in your Phone Number: ");
+            string phoneNumber = Console.ReadLine();
+            if (phoneNumber == "")
+            {
+                Console.WriteLine("Phone Number cannot be empty. Please try again.");
+                FillInPatientPhoneNumber();
+            }
+            else if (!phoneNumber.All(char.IsDigit))
+            {
+                Console.WriteLine("Phone Number can only contain numbers. Please try again.");
+                FillInPatientPhoneNumber();
+            }
+            else
+            {
+                Console.WriteLine("Phone Number updated successfully.");
+                UpdatePatientPersonalInfoMenu(); // Return to the update menu after successful update
+            }
+            // Code to handle phone number input and validation
+        }
+
+        public void FillInPatientDateOfBirth()
+        {
+            Console.WriteLine("Fill in your Date of Birth (YYYY-MM-DD): ");
+            string dateOfBirth = Console.ReadLine();
+            if (dateOfBirth == "")
+            {
+                Console.WriteLine("Date of Birth cannot be empty. Please try again.");
+                FillInPatientDateOfBirth();
+            }
+            else if (!DateTime.TryParse(dateOfBirth, out _))
+            {
+                Console.WriteLine("Invalid Date of Birth format. Please use YYYY-MM-DD. Try again.");
+                FillInPatientDateOfBirth();
+            }
+            else
+            {
+                Console.WriteLine("Date of Birth updated successfully.");
+                UpdatePatientPersonalInfoMenu(); // Return to the update menu after successful update
+            }   
+            // Code to handle date of birth input and validation
+        }
+
+        public void FillInPatientPersonalInfoHandler(string infoType)
+        {
+            if (infoType == "1") { FillInPatientFirstName(); }
+            else if (infoType == "2") { FillInPatientLastName(); }
+            else if (infoType == "3") { FillInPatientGender(); }
+            else if (infoType == "4") { FillInPatientPhoneNumber(); }
+            else if (infoType == "5") { FillInPatientAdress(); }
+            else if (infoType == "6") { FillInPatientDateOfBirth(); }
+            else if (infoType == "7") { PatientPersonalInfoMenu(); }
+            else
+            {
+                Console.WriteLine("Invalid choice. Please try again.");
+                UpdatePatientPersonalInfoMenu();
+            }
+        }
+
         public void PatientInformationHandler ()
         {
             PatientMainMenu();
@@ -68,7 +224,11 @@ namespace MedicalApp_DatabasTeknik
                 PatientPersonalInfoMenu();
                 string personalInfoChoice = Console.ReadLine();
                 if (personalInfoChoice == "1") 
-                { UpdatePatientPersonalInfoMenu(); }
+                { 
+                    UpdatePatientPersonalInfoMenu();
+                    string updateChoice = Console.ReadLine();
+                    FillInPatientPersonalInfoHandler(updateChoice);
+                }
                 else if (personalInfoChoice == "2") 
                 { PatientMainMenu(); }
                 else
@@ -115,7 +275,7 @@ namespace MedicalApp_DatabasTeknik
                 switch (choice)
                 {
                     case "1":
-                        program.PatientMainMenu();
+                        program.PatientInformationHandler();
                         break;
                     case "2":
                         program.DoctorMainMenu();
