@@ -246,6 +246,12 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("Appointment booked successfully for " + day + " at " + time);
         }
 
+        public void ViewMedicalRecord()
+        {
+            Console.WriteLine("Viewing Medical Record...");
+            // Code to retrieve and display medical record from the database
+        }
+
         public void PatientInformationHandler ()
         {
             PatientMainMenu();
