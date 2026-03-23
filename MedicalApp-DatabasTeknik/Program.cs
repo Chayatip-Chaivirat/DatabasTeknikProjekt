@@ -68,49 +68,53 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("4. Adress");
             Console.WriteLine("5. Phone Number");
             Console.WriteLine("6. Date of Birth");
-            Console.WriteLine("7. Back to Personal Information Menu"); 
+            Console.WriteLine("7. Back to Personal Information Menu");
         }
 
         public void FillInPatientFirstName()
         {
-            Console.WriteLine("Fill in first name: ");
-            string firstName = Console.ReadLine();
-            if (firstName == "")
+            while (true)
             {
-                Console.WriteLine("Name cannot be empty. Please try again.");
-                FillInPatientFirstName(); // Recursively call the method until a valid name is entered
+                Console.WriteLine("Fill in first name: ");
+                string firstName = Console.ReadLine();
+
+                if (string.IsNullOrEmpty(firstName))
+                {
+                    Console.WriteLine("Name cannot be empty.");
+                }
+                else if (firstName.Any(char.IsDigit))
+                {
+                    Console.WriteLine("No numbers allowed.");
+                }
+                else
+                {
+                    Console.WriteLine("Name updated successfully.");
+                    return;
+                }
             }
-            else if (firstName.Any(char.IsDigit))
-            {
-                Console.WriteLine("Name cannot contain numbers. Please try again.");
-                FillInPatientFirstName(); // Recursively call the method until a valid name is entered
-            }
-            else
-            {
-                Console.WriteLine("Name updated successfully.");
-                UpdatePatientPersonalInfoMenu(); // Return to the update menu after successful update
-            }
-            // Code to handle name input and validation
         }
 
         public void FillInPatientLastName()
         {
             Console.WriteLine("Fill in your Last Name: ");
             string lastName = Console.ReadLine();
-            if (lastName == "")
+            while (true)
             {
-                Console.WriteLine("Last Name cannot be empty. Please try again.");
-                FillInPatientLastName(); // Recursively call the method until a valid last name is entered
-            }
-            else if (lastName.Any(char.IsDigit))
-            {
-                Console.WriteLine("Last Name cannot contain numbers. Please try again.");
-                FillInPatientLastName(); // Recursively call the method until a valid last name is entered
-            }
-            else
-            {
-                Console.WriteLine("Last Name updated successfully.");
-                UpdatePatientPersonalInfoMenu(); // Return to the update menu after successful update
+                if (lastName == "")
+                {
+                    Console.WriteLine("Last Name cannot be empty. Please try again.");
+                    FillInPatientLastName(); // Recursively call the method until a valid last name is entered
+                }
+                else if (lastName.Any(char.IsDigit))
+                {
+                    Console.WriteLine("Last Name cannot contain numbers. Please try again.");
+                    FillInPatientLastName(); // Recursively call the method until a valid last name is entered
+                }
+                else
+                {
+                    Console.WriteLine("Last Name updated successfully.");
+                    return ;
+                }
             }
 
             // Code to handle last name input and validation
@@ -120,83 +124,95 @@ namespace MedicalApp_DatabasTeknik
         {
             Console.WriteLine("Fill in your gender: ");
             string gender = Console.ReadLine();
-            if (gender == "")
+            while (true)
             {
-                Console.WriteLine("Gender cannot be empty. Please try again.");
-                FillInPatientGender();
-            }
-            else if (gender.Any(char.IsDigit))
-            {
-                Console.WriteLine("Last Name cannot contain numbers. Please try again.");
-                FillInPatientGender();
-            }
-            else
-            {
-                Console.WriteLine("Gender updated successfully.");
-                UpdatePatientPersonalInfoMenu(); // Return to the update menu after successful update
-            }
-            // Code to handle gender input and validation
+                if (gender == "")
+                {
+                    Console.WriteLine("Gender cannot be empty. Please try again.");
+                    FillInPatientGender();
+                }
+                else if (gender.Any(char.IsDigit))
+                {
+                    Console.WriteLine("Last Name cannot contain numbers. Please try again.");
+                    FillInPatientGender();
+                }
+                else
+                {
+                    Console.WriteLine("Gender updated successfully.");
+                    return;
+                }
+                // Code to handle gender input and validation
+            } 
         }
 
         public void FillInPatientAdress()
         {
             Console.WriteLine("Fill in your Adress: ");
             string adress = Console.ReadLine();
-            if (adress == "")
+            while (true)
             {
-                Console.WriteLine("Adress cannot be empty. Please try again.");
-                FillInPatientAdress();
-            }
-            else
-            {
-                Console.WriteLine("Adress updated successfully.");
-                UpdatePatientPersonalInfoMenu(); // Return to the update menu after successful update
-            }
-            // Code to handle adress input and validation
+                if (adress == "")
+                {
+                    Console.WriteLine("Adress cannot be empty. Please try again.");
+                    FillInPatientAdress();
+                }
+                else
+                {
+                    Console.WriteLine("Adress updated successfully.");
+                    return;
+                }
+                // Code to handle adress input and validation
+            } 
         }
 
         public void FillInPatientPhoneNumber()
         {
             Console.WriteLine("Fill in your Phone Number: ");
             string phoneNumber = Console.ReadLine();
-            if (phoneNumber == "")
+            while (true)
             {
-                Console.WriteLine("Phone Number cannot be empty. Please try again.");
-                FillInPatientPhoneNumber();
-            }
-            else if (!phoneNumber.All(char.IsDigit))
-            {
-                Console.WriteLine("Phone Number can only contain numbers. Please try again.");
-                FillInPatientPhoneNumber();
-            }
-            else
-            {
-                Console.WriteLine("Phone Number updated successfully.");
-                UpdatePatientPersonalInfoMenu(); // Return to the update menu after successful update
-            }
-            // Code to handle phone number input and validation
+                if (phoneNumber == "")
+                {
+                    Console.WriteLine("Phone Number cannot be empty. Please try again.");
+                    FillInPatientPhoneNumber();
+                }
+                else if (!phoneNumber.All(char.IsDigit))
+                {
+                    Console.WriteLine("Phone Number can only contain numbers. Please try again.");
+                    FillInPatientPhoneNumber();
+                }
+                else
+                {
+                    Console.WriteLine("Phone Number updated successfully.");
+                    return;
+                }
+                // Code to handle phone number input and validation
+            } 
         }
 
         public void FillInPatientDateOfBirth()
         {
             Console.WriteLine("Fill in your Date of Birth (YYYY-MM-DD): ");
             string dateOfBirth = Console.ReadLine();
-            if (dateOfBirth == "")
+            while (true)
             {
-                Console.WriteLine("Date of Birth cannot be empty. Please try again.");
-                FillInPatientDateOfBirth();
-            }
-            else if (!DateTime.TryParse(dateOfBirth, out _))
-            {
-                Console.WriteLine("Invalid Date of Birth format. Please use YYYY-MM-DD. Try again.");
-                FillInPatientDateOfBirth();
-            }
-            else
-            {
-                Console.WriteLine("Date of Birth updated successfully.");
-                UpdatePatientPersonalInfoMenu(); // Return to the update menu after successful update
-            }   
-            // Code to handle date of birth input and validation
+                if (dateOfBirth == "")
+                {
+                    Console.WriteLine("Date of Birth cannot be empty. Please try again.");
+                    FillInPatientDateOfBirth();
+                }
+                else if (!DateTime.TryParse(dateOfBirth, out _))
+                {
+                    Console.WriteLine("Invalid Date of Birth format. Please use YYYY-MM-DD. Try again.");
+                    FillInPatientDateOfBirth();
+                }
+                else
+                {
+                    Console.WriteLine("Date of Birth updated successfully.");
+                    UpdatePatientPersonalInfoMenu(); // Return to the update menu after successful update
+                }
+                // Code to handle date of birth input and validation
+            } 
         }
 
         public void FillInPatientPersonalInfoHandler(string infoType)
@@ -204,14 +220,14 @@ namespace MedicalApp_DatabasTeknik
             if (infoType == "1") { FillInPatientFirstName(); }
             else if (infoType == "2") { FillInPatientLastName(); }
             else if (infoType == "3") { FillInPatientGender(); }
-            else if (infoType == "4") { FillInPatientPhoneNumber(); }
-            else if (infoType == "5") { FillInPatientAdress(); }
+            else if (infoType == "4") { FillInPatientAdress(); }
+            else if (infoType == "5") { FillInPatientPhoneNumber(); }
             else if (infoType == "6") { FillInPatientDateOfBirth(); }
             else if (infoType == "7") { PatientPersonalInfoMenu(); }
             else
             {
                 Console.WriteLine("Invalid choice. Please try again.");
-                UpdatePatientPersonalInfoMenu();
+                PatientInformationHandler();
             }
         }
 
@@ -241,6 +257,7 @@ namespace MedicalApp_DatabasTeknik
             else
             {
                 Console.WriteLine("Time selected: " + time);
+                Console.WriteLine("Appointment id: " + new Random().Next(1000, 9999)); // Generate a random appointment ID for demonstration
                 // Code to handle appointment booking
             }
             Console.WriteLine("Appointment booked successfully for " + day + " at " + time);
@@ -250,30 +267,64 @@ namespace MedicalApp_DatabasTeknik
         {
             Console.WriteLine("Viewing Medical Record...");
             // Code to retrieve and display medical record from the database
+
+            Console.WriteLine("Record id: ");
+            Console.WriteLine("Patient id: ");
+            Console.WriteLine("Appointment id: ");
+            Console.WriteLine("You have an appointment at: ");
+            Console.WriteLine("Diagnosis: ");
+            Console.WriteLine("Description: ");
         }
 
-        public void PatientInformationHandler ()
+        public void PatientInformationHandler()
         {
-            PatientMainMenu();
-            string patientChoice = Console.ReadLine();
-            if (patientChoice == "1")
+            while (true)
             {
-                PatientPersonalInfoMenu();
-                string personalInfoChoice = Console.ReadLine();
-                if (personalInfoChoice == "1") 
-                { 
-                    UpdatePatientPersonalInfoMenu();
-                    string updateChoice = Console.ReadLine();
-                    FillInPatientPersonalInfoHandler(updateChoice);
+                Console.WriteLine("\n");
+                PatientMainMenu();
+                string patientChoice = Console.ReadLine();
+
+                if (patientChoice == "1")
+                {
+                    Console.WriteLine("\n");
+                    PatientPersonalInfoMenu();
+                    string personalInfoChoice = Console.ReadLine();
+
+                    if (personalInfoChoice == "1")
+                    {
+                        Console.WriteLine("\n");
+                        UpdatePatientPersonalInfoMenu();
+                        string updateChoice = Console.ReadLine();
+                        FillInPatientPersonalInfoHandler(updateChoice);
+                    }
+                    else if (personalInfoChoice == "2")
+                    {
+                        Console.WriteLine("\n");
+                        continue; // go back to patient menu
+                    }
                 }
-                else if (personalInfoChoice == "2") 
-                { PatientMainMenu(); }
+                else if (patientChoice == "2")
+                {
+                    Console.WriteLine("\n");
+                    BookAppointment();
+                }
+                else if (patientChoice == "3")
+                {
+                    Console.WriteLine("\n");
+                    ViewMedicalRecord();
+                    continue;
+                }
+                else if (patientChoice == "4")
+                {
+                    Console.WriteLine("\n");
+                    Console.WriteLine("Logging out...");
+                    return; 
+                }
                 else
-                { Console.WriteLine("Invalid choice. Please try again."); }
-            }
-            if (patientChoice == "2")
-            {
-                BookAppointment();
+                {
+                    Console.WriteLine("\n");
+                    Console.WriteLine("Invalid choice. Please try again.");
+                }
             }
         }
 
@@ -287,6 +338,93 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("4. Logout");
         }
 
+        public void ViewAppointments()
+        {
+            Console.WriteLine("Appointments: ");
+            Console.WriteLine("Monday: " + new Random().Next(1,10) + "appointments.");
+            Console.WriteLine("Timeslots: ");
+            Console.WriteLine("\nTuesday: " + new Random().Next(1,10) + "appointments.");
+            Console.WriteLine("Timeslots: ");
+            Console.WriteLine("\nWednesday: " + new Random().Next(1,10) + "appointments.");
+            Console.WriteLine("Timeslots: ");
+            Console.WriteLine("\nThursday: " + new Random().Next(1,10) + "appointments.");
+            Console.WriteLine("Timeslots: ");
+            Console.WriteLine("\nFriday: " + new Random().Next(1,10) + "appointments.");
+            Console.WriteLine("Timeslots: ");
+            Console.WriteLine("\nSaturday: " + new Random().Next(1,10) + "appointments.");
+            Console.WriteLine("Timeslots: ");
+            Console.WriteLine("\nSunday: " + new Random().Next(1,10) + "appointments.");
+            Console.WriteLine("Timeslots: ");
+        }
+
+        public void UpdateTimeTable()
+        {
+            Console.WriteLine("Update Time Table:");
+            Console.WriteLine("Choose a day to update: ");
+            string day = Console.ReadLine();
+            int availableTimeslots = new Random().Next(1, 5);  
+            Console.WriteLine("Available timeslots: " + availableTimeslots);
+            Console.WriteLine("Choose a timeslot to update: ");
+            string timeslot = Console.ReadLine();
+            if (timeslot == "" || !int.TryParse(timeslot, out int timeslotNumber) || timeslotNumber < 1 || timeslotNumber > availableTimeslots)
+            {
+                Console.WriteLine("Invalid timeslot, try again.");
+                UpdateTimeTable();
+            }
+            else
+            {
+                Console.WriteLine("Timeslot " + timeslot + " updated successfully for " + day);
+                // Code to update the time table in the database
+            }
+        }
+
+        public void UpdateMedicalRecord()
+        {
+            Console.WriteLine("Updating Medical Record");
+            Console.WriteLine("Enter Patient ID: ");
+            string patientId = Console.ReadLine();
+            ViewMedicalRecord();
+            UpdatePatientPersonalInfoMenu();
+            string updateChoice = Console.ReadLine();   
+            FillInPatientPersonalInfoHandler(updateChoice);
+        }
+
+        public void DoctorInformationHandler()
+        {
+            while (true)
+            {
+                Console.WriteLine("\n");
+                DoctorMainMenu();
+                string doctorChoice = Console.ReadLine();
+                if (doctorChoice == "1")
+                {
+                    Console.WriteLine("\n");
+                    ViewAppointments();
+                }
+                else if (doctorChoice == "2")
+                {
+                    Console.WriteLine("\n");
+                    UpdateTimeTable();
+                }
+                else if (doctorChoice == "3")
+                {
+                    Console.WriteLine("\n");
+                    UpdateMedicalRecord();
+                }
+                else if (doctorChoice == "4")
+                {
+                    Console.WriteLine("\n");
+                    Console.WriteLine("Logging out...");
+                    return; 
+                }
+                else
+                {
+                    Console.WriteLine("\n");
+                    Console.WriteLine("Invalid choice. Please try again.");
+                }
+            }
+        }
+
         // Admin
         public void AdminMainMenu()
         {
@@ -298,7 +436,7 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("5. View Medical Records");
             Console.WriteLine("6. Logout");
         }
-        static void Main(string[] args)
+        public void AllMenues()
         {
             //string connString = "Host=postgres.mau.se;Username=an5964;Password=vzsjll4k;Database=an5964;Port=55432";
             //NpgsqlConnection conn = new NpgsqlConnection(connString);
@@ -310,29 +448,41 @@ namespace MedicalApp_DatabasTeknik
 
             while (true)
             {
-                Program program = new Program();
-                program.MainMenu();
+                Console.WriteLine("\n");
+                MainMenu();
                 string choice = Console.ReadLine();
-                switch (choice)
+
+                if (choice == "1")
                 {
-                    case "1":
-                        program.PatientInformationHandler();
-                        break;
-                    case "2":
-                        program.DoctorMainMenu();
-                        break;
-                    case "3":
-                        program.AdminMainMenu();
-                        break;
-                    case "4":
-                        Console.WriteLine("Exiting...");
-                        return;
-                    default:
-                        Console.WriteLine("Invalid choice. Please try again.");
-                        break;
+                    Console.WriteLine("\n");
+                    PatientInformationHandler();
+                }
+                else if (choice == "2")
+                {
+                    Console.WriteLine("\n");
+                    DoctorInformationHandler();
+                }
+                else if (choice == "3")
+                {
+                    Console.WriteLine("\n");
+                    AdminMainMenu();
+                }
+                else if (choice == "4")
+                {
+                    Console.WriteLine("Exiting...");
+                    return;
+                }
+                else
+                {
+                    Console.WriteLine("Invalid choice. Please try again.");
                 }
             }
         }
+
+        static void Main(string[] args)
+        {
+            Program program = new Program();
+            program.AllMenues();
+        }
     }
 }
-    
