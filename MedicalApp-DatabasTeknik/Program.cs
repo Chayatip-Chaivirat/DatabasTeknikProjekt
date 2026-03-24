@@ -431,10 +431,234 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("Admin Main Menu");
             Console.WriteLine("1. Manage Doctors");
             Console.WriteLine("2. Manage Patients");
-            Console.WriteLine("3. Manage Appointments");
-            Console.WriteLine("4. Manage Specializations");
-            Console.WriteLine("5. View Medical Records");
-            Console.WriteLine("6. Logout");
+            Console.WriteLine("3. Logout");
+        }
+
+        public void AdminManageDoctorsMenu()
+        {
+            Console.WriteLine("Managing Doctors:");
+            Console.WriteLine("1. Add Specialization");
+            Console.WriteLine("2. Update Doctor Information");
+            Console.WriteLine("3. Remove Doctor");
+            Console.WriteLine("4. Go Back");
+        }
+
+        public void AddSpecialization()
+        {
+            Console.WriteLine("Adding Specialization:");
+            Console.WriteLine("Enter Specialization: ");
+            string specialization = Console.ReadLine();
+            if (specialization == "")
+            {
+                Console.WriteLine("Doctor ID and Specialization cannot be empty. Please try again.");
+                AddSpecialization();
+            }
+            else
+            {
+                Console.WriteLine("Specialization " + specialization + " added successfully. Its ID is: ");
+                // Code to add specialization to the doctor in the database
+            }
+        }
+
+        public void UpdateDoctorInformationMenu()
+        {
+            Console.WriteLine("Updating Doctor Information:");
+            Console.WriteLine("Choose the following to Update: ");
+            Console.WriteLine("1. Full Name");
+            Console.WriteLine("2. Phone Number");
+            Console.WriteLine("3. Specialization");
+        }
+
+        public void UpdateDoctorFullName()
+        {
+            Console.WriteLine("Fill in Doctor's Full Name: ");
+            string fullName = Console.ReadLine();
+            if (fullName == "")
+            {
+                Console.WriteLine("Full Name cannot be empty. Please try again.");
+                UpdateDoctorFullName();
+            }
+            else
+            {
+                Console.WriteLine("Doctor's Full Name updated successfully to: " + fullName);
+                // Code to update doctor's full name in the database
+            }
+        }
+
+        public void UpdateDoctorPhoneNumber()
+        {
+            Console.WriteLine("Fill in Doctor's Phone Number: ");
+            string phoneNumber = Console.ReadLine();
+            if (phoneNumber == "")
+            {
+                Console.WriteLine("Phone Number cannot be empty. Please try again.");
+                UpdateDoctorPhoneNumber();
+            }
+            else if (!phoneNumber.All(char.IsDigit))
+            {
+                Console.WriteLine("Phone Number can only contain numbers. Please try again.");
+                UpdateDoctorPhoneNumber();
+            }
+            else
+            {
+                Console.WriteLine("Doctor's Phone Number updated successfully to: " + phoneNumber);
+                // Code to update doctor's phone number in the database
+            }
+        }
+
+        public void UpdateDoctorSpecialization()
+        {
+            Console.WriteLine("Fill in Doctor's Specialization: ");
+            string specialization = Console.ReadLine();
+            if (specialization == "")
+            {
+                Console.WriteLine("Specialization cannot be empty. Please try again.");
+                UpdateDoctorSpecialization();
+            }
+            else
+            {
+                Console.WriteLine("Doctor's Specialization updated successfully to: " + specialization);
+                // Code to update doctor's specialization in the database
+            }
+        }
+
+        public void FillInDoctorInformationHandler(string infoType)
+        {
+            if (infoType == "1") { UpdateDoctorFullName(); }
+            else if (infoType == "2") { UpdateDoctorPhoneNumber(); }
+            else if (infoType == "3") { UpdateDoctorSpecialization(); }
+            else if (infoType == "4") { AdminManageDoctorsMenu(); }
+            else
+            {
+                Console.WriteLine("Invalid choice. Please try again.");
+                UpdateDoctorInformationMenu();
+            }
+        }
+
+        public void RemoveDoctor()
+        {
+            Console.WriteLine("Removing Doctor:");
+            Console.WriteLine("Enter Doctor ID: ");
+            string doctorId = Console.ReadLine();
+            if (doctorId == "")
+            {
+                Console.WriteLine("Doctor ID cannot be empty. Please try again.");
+                RemoveDoctor();
+            }
+            else
+            {
+                Console.WriteLine("Doctor with ID " + doctorId + " removed successfully.");
+                // Code to remove doctor from the database
+            }
+        }
+
+        public void AdminManagePatientsMenu()
+        {
+            Console.WriteLine("Managing Patients:");
+            Console.WriteLine("1. View Patient List"); // Can also view patient details from this menu
+            Console.WriteLine("2. View Upcoming Appointments");
+            Console.WriteLine("3. View Medical Records");
+            Console.WriteLine("4. Go Back");
+        }
+
+        public void ViewPatientList()
+        {
+            Console.WriteLine("Patient List:");
+            Random patientInList = new Random();
+            int numberOfPatients = patientInList.Next(1, 10);
+            Console.WriteLine("There are " + numberOfPatients + "patients");
+            for (int i = 1; i <= numberOfPatients; i++)
+            {
+                Console.WriteLine("Patient ID: " + new Random().Next(1000, 9999) + ", Name: Patient " + i);
+            }
+        }
+
+        public void ViewUpcomingAppointments()
+        {
+            Console.WriteLine("Upcoming Appointments:");
+            Random appointmentInList = new Random();
+            int numberOfAppointments = appointmentInList.Next(1, 10);
+            Console.WriteLine("There are " + numberOfAppointments + " upcoming appointments.");
+            for (int i = 1; i <= numberOfAppointments; i++)
+            {
+                Console.WriteLine("Appointment ID: " + new Random().Next(1000, 9999) + ", Patient ID: " + new Random().Next(1000, 9999) + ", Date: " + DateTime.Now.AddDays(i).ToString("yyyy-MM-dd"));
+            }
+        }
+
+        public void ViewMedicalRecords()
+        {
+            Console.WriteLine("Viewing Medical Records:");
+            Console.WriteLine("Enter Patient ID: ");
+            string patientId = Console.ReadLine();
+            Console.WriteLine("Medical Records for Patient ID: " + patientId);
+        }
+
+        public void AdminManageDoctorsHandler(string doctorChoice)
+        {
+            if (doctorChoice == "1") { AddSpecialization(); }
+            else if (doctorChoice == "2") 
+            { 
+                UpdateDoctorInformationMenu(); 
+                string updateChoice = Console.ReadLine();
+                FillInDoctorInformationHandler(updateChoice);
+            }
+            else if (doctorChoice == "3") { RemoveDoctor(); }
+            else if (doctorChoice == "4") { AdminMainMenu(); }
+            else
+            {
+                Console.WriteLine("Invalid choice. Please try again.");
+                AdminManageDoctorsMenu();
+            }
+        }
+
+        public void AdminManagePatientsHandler(string patientChoice)
+        {
+            if (patientChoice == "1") { ViewPatientList(); }
+            else if (patientChoice == "2") { ViewUpcomingAppointments(); }
+            else if (patientChoice == "3") { ViewMedicalRecords(); }
+            else if (patientChoice == "4") { AdminMainMenu(); }
+            else
+            {
+                Console.WriteLine("Invalid choice. Please try again.");
+                AdminManagePatientsMenu();
+            }
+        }
+
+        public void AdminInformationHandler()
+        {
+            while (true)
+            {
+                Console.WriteLine("\n");
+                AdminMainMenu();
+                string adminChoice = Console.ReadLine();
+                if (adminChoice == "1")
+                {
+                    Console.WriteLine("\n");
+                    AdminManageDoctorsMenu();
+                    string doctorInfoChoice = Console.ReadLine();
+                    AdminManageDoctorsHandler(doctorInfoChoice);
+                }
+
+                else if (adminChoice == "2")
+                {
+                    Console.WriteLine("\n");
+                    AdminManagePatientsMenu();
+                    string patientInfoChoice = Console.ReadLine();
+                    AdminManagePatientsHandler(patientInfoChoice);
+                    // Code to handle patient management
+                }
+                else if (adminChoice == "3")
+                {
+                    Console.WriteLine("\n");
+                    Console.WriteLine("Logging out...");
+                    return;
+                }
+                else
+                {
+                    Console.WriteLine("\n");
+                    Console.WriteLine("Invalid choice. Please try again.");
+                }
+            }
         }
         public void AllMenues()
         {
@@ -465,7 +689,7 @@ namespace MedicalApp_DatabasTeknik
                 else if (choice == "3")
                 {
                     Console.WriteLine("\n");
-                    AdminMainMenu();
+                    AdminInformationHandler();
                 }
                 else if (choice == "4")
                 {
