@@ -13,6 +13,42 @@ namespace MedicalApp_DatabasTeknik
 
             return new NpgsqlConnection(connString);
         }
+
+        public bool PatientLogin()
+        {
+            Console.Write("Patient ID: ");
+            string id = Console.ReadLine();
+
+            Console.Write("Password: ");
+            string password = Console.ReadLine();
+
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+
+                string query = "SELECT * FROM patient WHERE patient_id = @id AND patient_password = @password";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("id", id);
+                    cmd.Parameters.AddWithValue("password", password);
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            Console.WriteLine("Login successful!");
+                            return true;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid login.");
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
         public void MainMenu()
         {
             Console.WriteLine("Welcome to the Medical App");
@@ -595,22 +631,42 @@ namespace MedicalApp_DatabasTeknik
 
         public void ViewUpcomingAppointments()
         {
-            Console.WriteLine("Upcoming Appointments:");
-            Random appointmentInList = new Random();
-            int numberOfAppointments = appointmentInList.Next(1, 10);
-            Console.WriteLine("There are " + numberOfAppointments + " upcoming appointments.");
-            for (int i = 1; i <= numberOfAppointments; i++)
+            using (var conn = GetConnection())
             {
-                Console.WriteLine("Appointment ID: " + new Random().Next(1000, 9999) + ", Patient ID: " + new Random().Next(1000, 9999) + ", Date: " + DateTime.Now.AddDays(i).ToString("yyyy-MM-dd"));
+                conn.Open();
+                string query = "SELECT appointment_id, patient_id, doctor_id, appointment_date FROM appointment WHERE appointment_date >= CURRENT_DATE ORDER BY appointment_date";
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    Console.WriteLine("Upcoming Appointments:");
+                    while (reader.Read())
+                    {
+                        Console.WriteLine(
+                            $"Appointment ID: {reader["appointment_id"]}, Patient ID: {reader["patient_id"]}, Doctor ID: {reader["doctor_id"]}, Date: {reader["appointment_date"]}"
+                        );
+                    }
+                }
             }
         }
 
         public void ViewMedicalRecords()
         {
-            Console.WriteLine("Viewing Medical Records:");
-            Console.WriteLine("Enter Patient ID: ");
-            string patientId = Console.ReadLine();
-            Console.WriteLine("Medical Records for Patient ID: " + patientId);
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                string query = "SELECT record_id, patient_id, diagnosis FROM medical_record";
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    Console.WriteLine("Medical Records:");
+                    while (reader.Read())
+                    {
+                        Console.WriteLine(
+                            $"Record ID: {reader["record_id"]}, Patient ID: {reader["patient_id"]}, Diagnosis: {reader["diagnosis"]}"
+                        );
+                    }
+                }
+            }
         }
 
         public void AdminManageDoctorsHandler(string doctorChoice)
@@ -697,8 +753,10 @@ namespace MedicalApp_DatabasTeknik
 
                 if (choice == "1")
                 {
-                    Console.WriteLine("\n");
-                    PatientInformationHandler();
+                    if (PatientLogin())
+                    {
+                        PatientInformationHandler();
+                    }
                 }
                 else if (choice == "2")
                 {
