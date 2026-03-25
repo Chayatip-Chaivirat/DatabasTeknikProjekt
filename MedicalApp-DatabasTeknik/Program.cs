@@ -477,7 +477,7 @@ namespace MedicalApp_DatabasTeknik
             using (var conn = GetUserConnection())
             {
                 conn.Open();
-                string query = "SELECT specialization_id, spec_name FROM specialization";
+                string query = "SELECT specialization_id, spec_name, visit_cost FROM specialization";
                 using (var cmd = new NpgsqlCommand(query, conn))
                 using (var reader = cmd.ExecuteReader())
                 {
@@ -485,6 +485,8 @@ namespace MedicalApp_DatabasTeknik
                     while (reader.Read())
                     {
                         Console.WriteLine($"{reader["specialization_id"]}: {reader["spec_name"]}");
+                        Console.WriteLine($"Visit Cost: {reader["visit_cost"]}");
+                        Console.WriteLine("\n");
                     }
                 }
             }
@@ -603,26 +605,6 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("3. Update Medical Record");
             Console.WriteLine("4. Logout");
         }
-
-        public void ViewAppointments()
-        {
-            Console.WriteLine("Appointments: ");
-            Console.WriteLine("Monday: " + new Random().Next(1,10) + "appointments.");
-            Console.WriteLine("Timeslots: ");
-            Console.WriteLine("\nTuesday: " + new Random().Next(1,10) + "appointments.");
-            Console.WriteLine("Timeslots: ");
-            Console.WriteLine("\nWednesday: " + new Random().Next(1,10) + "appointments.");
-            Console.WriteLine("Timeslots: ");
-            Console.WriteLine("\nThursday: " + new Random().Next(1,10) + "appointments.");
-            Console.WriteLine("Timeslots: ");
-            Console.WriteLine("\nFriday: " + new Random().Next(1,10) + "appointments.");
-            Console.WriteLine("Timeslots: ");
-            Console.WriteLine("\nSaturday: " + new Random().Next(1,10) + "appointments.");
-            Console.WriteLine("Timeslots: ");
-            Console.WriteLine("\nSunday: " + new Random().Next(1,10) + "appointments.");
-            Console.WriteLine("Timeslots: ");
-        }
-
         public void UpdateTimeTable()
         {
             Console.WriteLine("Update Time Table:");
@@ -665,7 +647,9 @@ namespace MedicalApp_DatabasTeknik
                 if (doctorChoice == "1")
                 {
                     Console.WriteLine("\n");
-                    ViewAppointments();
+                    Console.WriteLine("Enter patient ID: ");
+                    string patientID = Console.ReadLine();
+                    ViewPatientAppointments(patientID);
                 }
                 else if (doctorChoice == "2")
                 {
@@ -731,23 +715,61 @@ namespace MedicalApp_DatabasTeknik
 
         public void AddSpecialization()
         {
-            Console.WriteLine("Adding Specialization:");
-            Console.WriteLine("Enter Specialization: ");
-            string specialization = Console.ReadLine();
-            if (specialization == "")
+            using (var conn = GetAdminConnection())
             {
-                Console.WriteLine("Doctor ID and Specialization cannot be empty. Please try again.");
-                AddSpecialization();
+                conn.Open();
+                Console.WriteLine("Enter new specialization name: ");
+                string specName = Console.ReadLine();
+
+                Console.WriteLine("Add visit cost: ");
+                string visitCostInput = Console.ReadLine();
+
+                if (string.IsNullOrEmpty(specName) || string.IsNullOrEmpty(visitCostInput))
+                {
+                    Console.WriteLine("Specialization name or visit cost cannot be empty. Please try again.");
+                    AddSpecialization();
+                    return;
+                }
+                string query = "INSERT INTO specialization (spec_name, visit_cost) VALUES (@name, @cost)";
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("name", specName);
+                    cmd.Parameters.AddWithValue("cost", decimal.Parse(visitCostInput));
+                    cmd.ExecuteNonQuery();
+                }
+                Console.WriteLine("Specialization added successfully: " + specName);
+                Console.WriteLine("Visit cost: " + visitCostInput);
             }
-            else
+        }
+
+        public void ShowDoctorInfoForAdmin()
+        {
+            using (var conn = GetAdminConnection())
             {
-                Console.WriteLine("Specialization " + specialization + " added successfully. Its ID is: ");
-                // Code to add specialization to the doctor in the database
+                conn.Open();
+                string query = "SELECT doctor_id, full_name, specialization_id, phone, doctor_password FROM doctor";
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    Console.WriteLine("Doctors List:");
+                    while (reader.Read())
+                    {
+                        Console.WriteLine("\n");
+                        Console.WriteLine($"{reader["doctor_id"]}: {reader["full_name"]}");
+                        Console.WriteLine($"Specialization ID: {reader["specialization_id"]}");
+                        Console.WriteLine($"Phone: {reader["phone"]}");
+                        Console.WriteLine($"Password: {reader["doctor_password"]}");
+                    }
+                }
             }
         }
 
         public void UpdateDoctorInformationMenu()
         {
+            ShowDoctorInfoForAdmin();
+            Console.WriteLine("\n");
+            ShowSpecializations();
+            Console.WriteLine("\n");
             Console.WriteLine("Updating Doctor Information:");
             Console.WriteLine("Choose the following to Update: ");
             Console.WriteLine("1. Full Name");
