@@ -4,12 +4,19 @@ namespace MedicalApp_DatabasTeknik
 {
     internal class Program
     {
-        public NpgsqlConnection GetConnection()
+        public NpgsqlConnection GetAdminConnection() // For administrator login
         {
             Console.Write("Enter database password: ");
             string dbPassword = Console.ReadLine();
 
             string connString = $"Host=postgres.mau.se;Username=an5964;Password={dbPassword};Database=an5964;Port=55432";
+
+            return new NpgsqlConnection(connString);
+        }
+
+        public NpgsqlConnection GetUserConnection() // For patients and doctors
+        {
+            string connString = $"Host=postgres.mau.se;Username=an5964;Password=vzsjll4k;Database=an5964;Port=55432";
 
             return new NpgsqlConnection(connString);
         }
@@ -22,7 +29,7 @@ namespace MedicalApp_DatabasTeknik
             Console.Write("Password: ");
             string password = Console.ReadLine();
 
-            using (var conn = GetConnection())
+            using (var conn = GetUserConnection())
             {
                 conn.Open();
 
@@ -49,6 +56,112 @@ namespace MedicalApp_DatabasTeknik
                 }
             }
         }
+
+        public string RetrivePatientIdFromDatabase(string id)
+        {
+            using (var conn = GetUserConnection())
+            {
+                conn.Open();
+                string query = "SELECT patient_id FROM patient WHERE patient_id = @id";
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("id", id);
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            return reader["patient_id"].ToString();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Patient ID not found.");
+                            return null;
+                        }
+                    }
+                }
+            }
+        }
+
+        public bool DoctorLogin()
+        {
+            Console.Write("Doctor ID: ");
+            string id = Console.ReadLine();
+            Console.Write("Password: ");
+            string password = Console.ReadLine();
+            using (var conn = GetUserConnection())
+            {
+                conn.Open();
+                string query = "SELECT * FROM doctor WHERE doctor_id = @id AND doctor_password = @password";
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("id", id);
+                    cmd.Parameters.AddWithValue("password", password);
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            Console.WriteLine("Login successful!");
+                            return true;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid login.");
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        public bool AdminLogin()
+        {
+            Console.Write("Admin ID: ");
+            string id = Console.ReadLine();
+
+            Console.Write("Admin Name: ");
+            string name = Console.ReadLine();
+
+            Console.Write("Password: ");
+            string password = Console.ReadLine();
+
+            using (var conn = GetAdminConnection())
+            {
+                conn.Open();
+
+                string query = @"SELECT * 
+                         FROM administrator 
+                         WHERE administrator_id = @id 
+                         AND administrator_name = @name 
+                         AND administrator_password = @password";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    if (!int.TryParse(id, out int adminId))
+                    {
+                        Console.WriteLine("Invalid ID format.");
+                        return false;
+                    }
+
+                    cmd.Parameters.AddWithValue("id", adminId);
+                    cmd.Parameters.AddWithValue("name", name);
+                    cmd.Parameters.AddWithValue("password", password);
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            Console.WriteLine("Login successful!");
+                            return true;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid login.");
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
         public void MainMenu()
         {
             Console.WriteLine("Welcome to the Medical App");
@@ -57,30 +170,6 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("2. Doctor");
             Console.WriteLine("3. Administrator");
             Console.WriteLine("4. Exit");
-        }
-
-        public void FillInID()
-        {
-            string id = Console.ReadLine();
-            Console.WriteLine("Fill in your ID: ");
-            if (id == "")
-            {
-                Console.WriteLine("ID cannot be empty. Please try again.");
-                FillInID(); // Recursively call the method until a valid ID is entered
-            }
-            // Code to handle ID input and validation
-        }
-
-        public void FillInPassword()
-        {
-            string password = Console.ReadLine();
-            Console.WriteLine("Fill in your Password: ");
-            if (password == "")
-            {
-                Console.WriteLine("Password cannot be empty. Please try again.");
-                FillInPassword(); // Recursively call the method until a valid password is entered
-            }
-            // Code to handle password input and validation
         }
 
         // Patient 
@@ -276,36 +365,95 @@ namespace MedicalApp_DatabasTeknik
             }
         }
 
+        public void ShowDoctors()
+        {
+            using (var conn = GetUserConnection())
+            {
+                conn.Open();
+
+                string query = "SELECT doctor_id, full_name, specialization_id FROM doctor";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    Console.WriteLine("Available Doctors:");
+
+                    while (reader.Read())
+                    {
+                        Console.WriteLine($"{reader["doctor_id"]}: {reader["full_name"]} - {reader["specialization_id"]}");
+                    }
+                }
+            }
+        }
+
+        public void ShowSpecializations()
+        {
+            using (var conn = GetUserConnection())
+            {
+                conn.Open();
+                string query = "SELECT specialization_id, spec_name FROM specialization";
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    Console.WriteLine("Available Specializations:");
+                    while (reader.Read())
+                    {
+                        Console.WriteLine($"{reader["specialization_id"]}: {reader["spec_name"]}");
+                    }
+                }
+            }
+        }
+
         public void BookAppointment()
         {
-            Console.WriteLine("Booking an appointment");
-            Console.WriteLine("Choose a day: ");
-            string day = Console.ReadLine();
-            if (day == "")
+            Console.WriteLine("Patient ID: ");
+            string patientId = Console.ReadLine();
+            string validPatient = RetrivePatientIdFromDatabase(patientId);
+
+            if (validPatient == null)
             {
-                Console.WriteLine("Day cannot be empty. Please try again.");
-                BookAppointment();
-            }
-            else
-            {
-                Console.WriteLine("Day selected: " + day);
-                // Code to handle appointment booking
+                Console.WriteLine("Invalid patient ID.");
+                return;
             }
 
-            Console.WriteLine("Choose a time: ");
-            string time = Console.ReadLine();
-            if (time == "")
+            ShowDoctors();
+            ShowSpecializations();
+
+            Console.Write("Doctor ID: ");
+            string doctorId = Console.ReadLine();
+
+            if (!DoctorExists(doctorId)) // Check if doctor ID exists in the database
             {
-                Console.WriteLine("Time cannot be empty. Please try again.");
-                BookAppointment();
+                Console.WriteLine("Doctor does not exist!");
+                return;
             }
-            else
+
+            Console.Write("Date (YYYY-MM-DD): ");
+            DateTime date = DateTime.Parse(Console.ReadLine());
+
+            Console.Write("Time (HH:MM): ");
+            TimeSpan time = TimeSpan.Parse(Console.ReadLine());
+
+            using (var conn = GetUserConnection())
             {
-                Console.WriteLine("Time selected: " + time);
-                Console.WriteLine("Appointment id: " + new Random().Next(1000, 9999)); // Generate a random appointment ID for demonstration
-                // Code to handle appointment booking
+                conn.Open();
+
+                string query = @"INSERT INTO appointment 
+        (patient_id, doctor_id, appointment_date, appointment_time)
+        VALUES (@pid, @did, @date, @time)";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("pid", patientId);
+                    cmd.Parameters.AddWithValue("did", doctorId);
+                    cmd.Parameters.AddWithValue("date", date);
+                    cmd.Parameters.AddWithValue("time", time);
+
+                    cmd.ExecuteNonQuery();
+                }
             }
-            Console.WriteLine("Appointment booked successfully for " + day + " at " + time);
+
+            Console.WriteLine("Appointment booked!");
         }
 
         public void ViewMedicalRecord()
@@ -470,6 +618,26 @@ namespace MedicalApp_DatabasTeknik
             }
         }
 
+        public bool DoctorExists(string doctorId)
+        {
+            using (var conn = GetUserConnection())
+            {
+                conn.Open();
+
+                string query = "SELECT 1 FROM doctor WHERE doctor_id = @id";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("id", doctorId);
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        return reader.Read(); // true if found
+                    }
+                }
+            }
+        }
+
         // Admin
         public void AdminMainMenu()
         {
@@ -608,7 +776,7 @@ namespace MedicalApp_DatabasTeknik
 
         public void ViewPatientList()
         {
-            using (var conn = GetConnection())
+            using (var conn = GetAdminConnection())
             {
                 conn.Open();
 
@@ -631,7 +799,7 @@ namespace MedicalApp_DatabasTeknik
 
         public void ViewUpcomingAppointments()
         {
-            using (var conn = GetConnection())
+            using (var conn = GetAdminConnection())
             {
                 conn.Open();
                 string query = "SELECT appointment_id, patient_id, doctor_id, appointment_date FROM appointment WHERE appointment_date >= CURRENT_DATE ORDER BY appointment_date";
@@ -651,7 +819,7 @@ namespace MedicalApp_DatabasTeknik
 
         public void ViewMedicalRecords()
         {
-            using (var conn = GetConnection())
+            using (var conn = GetAdminConnection())
             {
                 conn.Open();
                 string query = "SELECT record_id, patient_id, diagnosis FROM medical_record";
@@ -739,11 +907,11 @@ namespace MedicalApp_DatabasTeknik
         public void AllMenues()
         {
 
-            using (var conn = GetConnection())
-            {
-                conn.Open();
-                Console.WriteLine("Connected to database!");
-            }
+            //using (var conn = GetConnection())
+            //{
+            //    conn.Open();
+            //    Console.WriteLine("Connected to database!");
+            //}
 
             while (true)
             {
@@ -761,12 +929,14 @@ namespace MedicalApp_DatabasTeknik
                 else if (choice == "2")
                 {
                     Console.WriteLine("\n");
-                    DoctorInformationHandler();
+                    if (DoctorLogin())
+                        DoctorInformationHandler();
                 }
                 else if (choice == "3")
                 {
                     Console.WriteLine("\n");
-                    AdminInformationHandler();
+                    if (AdminLogin())
+                        AdminInformationHandler();
                 }
                 else if (choice == "4")
                 {
