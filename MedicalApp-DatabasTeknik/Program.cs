@@ -217,6 +217,57 @@ namespace MedicalApp_DatabasTeknik
                 }
             }
         }
+
+        public void ViewPatientAppointments(string patientID)
+        {
+            Console.WriteLine("Your Appointments:");
+            using (var conn = GetUserConnection())
+            {
+                conn.Open();
+                string query = @"SELECT a.appointment_id, a.appointment_date, a.appointment_time, d.full_name AS doctor_name
+                         FROM appointment a
+                         JOIN doctor d ON a.doctor_id = d.doctor_id
+                         WHERE a.patient_id = @id";
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("id", patientID);
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            Console.WriteLine($"Appointment ID: {reader["appointment_id"]}, Date: {reader["appointment_date"]}, Time: {reader["appointment_time"]}, Doctor: {reader["doctor_name"]}");
+                        }
+                    }
+                }
+            }
+        }
+
+        public void ViewPatientMedicalRecord(string patientID)
+        {
+            Console.WriteLine($"Medical Record for patient: {patientID}");
+            using (var conn = GetUserConnection())
+            {
+                conn.Open();
+                string query = @"SELECT record_id, appointment_id, diagnosis, prescription, description 
+                         FROM medical_record 
+                         WHERE patient_id = @id";
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("id", patientID);
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            Console.WriteLine($"Record ID: {reader["record_id"]}");
+                            Console.WriteLine($"Appointment ID: {reader["appointment_id"]}");
+                            Console.WriteLine($"Diagnosis: {reader["diagnosis"]}");
+                            Console.WriteLine($"Prescription: {reader["prescription"]}");
+                            Console.WriteLine($"Description: {reader["description"]}");
+                        }
+                    }
+                }
+            }
+        }
         public void PatientPersonalInfoMenu(string patientID)
         {
             ViewPatientPersonalInfo(patientID);
@@ -441,7 +492,8 @@ namespace MedicalApp_DatabasTeknik
 
         public void BookAppointment(string patientID)
         {
-            Console.WriteLine("Patient ID: {patientID}");
+            ViewPatientAppointments(patientID);
+            Console.WriteLine($"Patient ID: {patientID}");
             string validPatient = RetrivePatientIdFromDatabase(patientID);
 
             if (validPatient == null)
@@ -490,19 +542,6 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("Appointment booked!");
         }
 
-        public void ViewMedicalRecord()
-        {
-            Console.WriteLine("Viewing Medical Record...");
-            // Code to retrieve and display medical record from the database
-
-            Console.WriteLine("Record id: ");
-            Console.WriteLine("Patient id: ");
-            Console.WriteLine("Appointment id: ");
-            Console.WriteLine("You have an appointment at: ");
-            Console.WriteLine("Diagnosis: ");
-            Console.WriteLine("Description: ");
-        }
-
         public void PatientInformationHandler(string patientID)
         {
             while (true)
@@ -538,7 +577,7 @@ namespace MedicalApp_DatabasTeknik
                 else if (patientChoice == "3")
                 {
                     Console.WriteLine("\n");
-                    ViewMedicalRecord();
+                    ViewPatientMedicalRecord(patientID);
                     continue;
                 }
                 else if (patientChoice == "4")
@@ -610,7 +649,7 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("Updating Medical Record");
             Console.WriteLine("Enter Patient ID: ");
             string patientId = Console.ReadLine();
-            ViewMedicalRecord();
+            ViewPatientMedicalRecord(patientId);
             UpdatePatientPersonalInfoMenu();
             string updateChoice = Console.ReadLine();   
             FillInPatientPersonalInfoHandler(updateChoice, patientId);
