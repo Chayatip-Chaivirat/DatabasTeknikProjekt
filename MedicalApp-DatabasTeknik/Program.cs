@@ -4,6 +4,15 @@ namespace MedicalApp_DatabasTeknik
 {
     internal class Program
     {
+        public NpgsqlConnection GetConnection()
+        {
+            Console.Write("Enter database password: ");
+            string dbPassword = Console.ReadLine();
+
+            string connString = $"Host=postgres.mau.se;Username=an5964;Password={dbPassword};Database=an5964;Port=55432";
+
+            return new NpgsqlConnection(connString);
+        }
         public void MainMenu()
         {
             Console.WriteLine("Welcome to the Medical App");
@@ -563,13 +572,24 @@ namespace MedicalApp_DatabasTeknik
 
         public void ViewPatientList()
         {
-            Console.WriteLine("Patient List:");
-            Random patientInList = new Random();
-            int numberOfPatients = patientInList.Next(1, 10);
-            Console.WriteLine("There are " + numberOfPatients + "patients");
-            for (int i = 1; i <= numberOfPatients; i++)
+            using (var conn = GetConnection())
             {
-                Console.WriteLine("Patient ID: " + new Random().Next(1000, 9999) + ", Name: Patient " + i);
+                conn.Open();
+
+                string query = "SELECT patient_id, first_name, last_name FROM patient";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    Console.WriteLine("Patient List:");
+
+                    while (reader.Read())
+                    {
+                        Console.WriteLine(
+                            $"ID: {reader["patient_id"]}, Name: {reader["first_name"]} {reader["last_name"]}"
+                        );
+                    }
+                }
             }
         }
 
@@ -662,13 +682,12 @@ namespace MedicalApp_DatabasTeknik
         }
         public void AllMenues()
         {
-            //string connString = "Host=postgres.mau.se;Username=an5964;Password=vzsjll4k;Database=an5964;Port=55432";
-            //NpgsqlConnection conn = new NpgsqlConnection(connString);
-            //conn.Open();
 
-            //Console.WriteLine("Connected to database!");
-
-            //conn.Close();
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                Console.WriteLine("Connected to database!");
+            }
 
             while (true)
             {
