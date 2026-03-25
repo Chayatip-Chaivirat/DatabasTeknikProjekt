@@ -21,7 +21,7 @@ namespace MedicalApp_DatabasTeknik
             return new NpgsqlConnection(connString);
         }
 
-        public bool PatientLogin()
+        public string PatientLogin()
         {
             Console.Write("Patient ID: ");
             string id = Console.ReadLine();
@@ -33,7 +33,7 @@ namespace MedicalApp_DatabasTeknik
             {
                 conn.Open();
 
-                string query = "SELECT * FROM patient WHERE patient_id = @id AND patient_password = @password";
+                string query = "SELECT patient_id FROM patient WHERE patient_id = @id AND patient_password = @password";
 
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
@@ -45,12 +45,12 @@ namespace MedicalApp_DatabasTeknik
                         if (reader.Read())
                         {
                             Console.WriteLine("Login successful!");
-                            return true;
+                            return reader["patient_id"].ToString();
                         }
                         else
                         {
                             Console.WriteLine("Invalid login.");
-                            return false;
+                            return null;
                         }
                     }
                 }
@@ -182,10 +182,46 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("4. Logout");
         }
 
-        public void PatientPersonalInfoMenu()
+        public void ViewPatientPersonalInfo(string patientID)
         {
-            Console.WriteLine("Viewing Personal Information...");
-            // Code to retrieve and display personal information from the database
+            Console.WriteLine("Personal Information:");
+
+            using (var conn = GetUserConnection())
+            {
+                conn.Open();
+
+                string query = @"SELECT patient_id, first_name, last_name, gender, address, phone, birthdate 
+                         FROM patient 
+                         WHERE patient_id = @id";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("id", patientID);
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            Console.WriteLine($"ID: {reader["patient_id"]}");
+                            Console.WriteLine($"Name: {reader["first_name"]} {reader["last_name"]}");
+                            Console.WriteLine($"Gender: {reader["gender"]}");
+                            Console.WriteLine($"Address: {reader["address"]}");
+                            Console.WriteLine($"Phone: {reader["phone"]}");
+                            Console.WriteLine($"Date of Birth: {reader["birthdate"]}");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Patient not found.");
+                        }
+                    }
+                }
+            }
+        }
+        public void PatientPersonalInfoMenu(string patientID)
+        {
+            ViewPatientPersonalInfo(patientID);
+
+            Console.WriteLine("\n");
             Console.WriteLine("Choose the following to: ");
             Console.WriteLine("1. Update Personal Information");
             Console.WriteLine("2. Back to Main Menu"); // To return to the patient main menu
@@ -349,7 +385,7 @@ namespace MedicalApp_DatabasTeknik
             } 
         }
 
-        public void FillInPatientPersonalInfoHandler(string infoType)
+        public void FillInPatientPersonalInfoHandler(string infoType, string patientID)
         {
             if (infoType == "1") { FillInPatientFirstName(); }
             else if (infoType == "2") { FillInPatientLastName(); }
@@ -357,11 +393,10 @@ namespace MedicalApp_DatabasTeknik
             else if (infoType == "4") { FillInPatientAdress(); }
             else if (infoType == "5") { FillInPatientPhoneNumber(); }
             else if (infoType == "6") { FillInPatientDateOfBirth(); }
-            else if (infoType == "7") { PatientPersonalInfoMenu(); }
+            else if (infoType == "7") { PatientPersonalInfoMenu(patientID); }
             else
             {
                 Console.WriteLine("Invalid choice. Please try again.");
-                PatientInformationHandler();
             }
         }
 
@@ -404,11 +439,10 @@ namespace MedicalApp_DatabasTeknik
             }
         }
 
-        public void BookAppointment()
+        public void BookAppointment(string patientID)
         {
-            Console.WriteLine("Patient ID: ");
-            string patientId = Console.ReadLine();
-            string validPatient = RetrivePatientIdFromDatabase(patientId);
+            Console.WriteLine("Patient ID: {patientID}");
+            string validPatient = RetrivePatientIdFromDatabase(patientID);
 
             if (validPatient == null)
             {
@@ -444,7 +478,7 @@ namespace MedicalApp_DatabasTeknik
 
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("pid", patientId);
+                    cmd.Parameters.AddWithValue("pid", patientID);
                     cmd.Parameters.AddWithValue("did", doctorId);
                     cmd.Parameters.AddWithValue("date", date);
                     cmd.Parameters.AddWithValue("time", time);
@@ -469,7 +503,7 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("Description: ");
         }
 
-        public void PatientInformationHandler()
+        public void PatientInformationHandler(string patientID)
         {
             while (true)
             {
@@ -480,7 +514,7 @@ namespace MedicalApp_DatabasTeknik
                 if (patientChoice == "1")
                 {
                     Console.WriteLine("\n");
-                    PatientPersonalInfoMenu();
+                    PatientPersonalInfoMenu(patientID);
                     string personalInfoChoice = Console.ReadLine();
 
                     if (personalInfoChoice == "1")
@@ -488,7 +522,7 @@ namespace MedicalApp_DatabasTeknik
                         Console.WriteLine("\n");
                         UpdatePatientPersonalInfoMenu();
                         string updateChoice = Console.ReadLine();
-                        FillInPatientPersonalInfoHandler(updateChoice);
+                        FillInPatientPersonalInfoHandler(updateChoice, patientID);
                     }
                     else if (personalInfoChoice == "2")
                     {
@@ -499,7 +533,7 @@ namespace MedicalApp_DatabasTeknik
                 else if (patientChoice == "2")
                 {
                     Console.WriteLine("\n");
-                    BookAppointment();
+                    BookAppointment(patientID);
                 }
                 else if (patientChoice == "3")
                 {
@@ -579,7 +613,7 @@ namespace MedicalApp_DatabasTeknik
             ViewMedicalRecord();
             UpdatePatientPersonalInfoMenu();
             string updateChoice = Console.ReadLine();   
-            FillInPatientPersonalInfoHandler(updateChoice);
+            FillInPatientPersonalInfoHandler(updateChoice, patientId);
         }
 
         public void DoctorInformationHandler()
@@ -906,13 +940,6 @@ namespace MedicalApp_DatabasTeknik
         }
         public void AllMenues()
         {
-
-            //using (var conn = GetConnection())
-            //{
-            //    conn.Open();
-            //    Console.WriteLine("Connected to database!");
-            //}
-
             while (true)
             {
                 Console.WriteLine("\n");
@@ -921,9 +948,10 @@ namespace MedicalApp_DatabasTeknik
 
                 if (choice == "1")
                 {
-                    if (PatientLogin())
+                    string patientId = PatientLogin();
+                    if (patientId != null)
                     {
-                        PatientInformationHandler();
+                        PatientInformationHandler(patientId);
                     }
                 }
                 else if (choice == "2")
