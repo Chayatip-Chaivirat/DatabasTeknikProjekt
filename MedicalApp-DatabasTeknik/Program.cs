@@ -375,12 +375,6 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("Fill in your Adress: ");
             string adress = Console.ReadLine();
 
-            if (!string.IsNullOrEmpty(adress))
-            {
-                Console.WriteLine("Invalid adress.");
-                return;
-            }
-
             using (var conn = GetUserConnection())
             {
                 conn.Open();
