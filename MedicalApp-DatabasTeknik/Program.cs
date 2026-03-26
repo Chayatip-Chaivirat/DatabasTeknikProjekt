@@ -293,158 +293,170 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("7. Back to Personal Information Menu");
         }
 
-        public void FillInPatientFirstName()
+        public void FillInPatientFirstName(string patientID)
         {
-            while (true)
-            {
-                Console.WriteLine("Fill in first name: ");
-                string firstName = Console.ReadLine();
+            Console.WriteLine("Fill in first name: ");
+            string firstName = Console.ReadLine();
 
-                if (string.IsNullOrEmpty(firstName))
+            if (string.IsNullOrEmpty(firstName) || firstName.Any(char.IsDigit))
+            {
+                Console.WriteLine("Invalid name.");
+                return;
+            }
+
+            using (var conn = GetUserConnection())
+            {
+                conn.Open();
+
+                string query = "UPDATE patient SET first_name = @first WHERE patient_id = @id";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    Console.WriteLine("Name cannot be empty.");
-                }
-                else if (firstName.Any(char.IsDigit))
-                {
-                    Console.WriteLine("No numbers allowed.");
-                }
-                else
-                {
-                    Console.WriteLine("Name updated successfully.");
-                    return;
+                    cmd.Parameters.AddWithValue("first", firstName);
+                    cmd.Parameters.AddWithValue("id", patientID);
+
+                    cmd.ExecuteNonQuery();
                 }
             }
+
+            Console.WriteLine("First name updated");
         }
 
-        public void FillInPatientLastName()
+        public void FillInPatientLastName(string patientID)
         {
-            Console.WriteLine("Fill in your Last Name: ");
+           Console.WriteLine("Fill in last name: ");
             string lastName = Console.ReadLine();
-            while (true)
+            if (string.IsNullOrEmpty(lastName)|| lastName.Any(char.IsDigit))
             {
-                if (lastName == "")
-                {
-                    Console.WriteLine("Last Name cannot be empty. Please try again.");
-                    FillInPatientLastName(); // Recursively call the method until a valid last name is entered
-                }
-                else if (lastName.Any(char.IsDigit))
-                {
-                    Console.WriteLine("Last Name cannot contain numbers. Please try again.");
-                    FillInPatientLastName(); // Recursively call the method until a valid last name is entered
-                }
-                else
-                {
-                    Console.WriteLine("Last Name updated successfully.");
-                    return ;
-                }
+                Console.WriteLine("Invalid name.");
+                return;
             }
 
-            // Code to handle last name input and validation
+            using (var conn = GetUserConnection())
+            {
+                conn.Open();
+                string query = "UPDATE patient SET last_name = @last WHERE patient_id = @id";
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("last", lastName);
+                    cmd.Parameters.AddWithValue("id", patientID);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            Console.WriteLine("Last name updated");
         }
 
-        public void FillInPatientGender()
+        public void FillInPatientGender(string patientID)
         {
             Console.WriteLine("Fill in your gender: ");
             string gender = Console.ReadLine();
-            while (true)
+            if (string.IsNullOrEmpty(gender) || gender.Any(char.IsDigit))
             {
-                if (gender == "")
+                Console.WriteLine("Invalid gender.");
+                return;
+            }
+
+            using (var conn = GetUserConnection())
+            {
+                conn.Open();
+                string query = "UPDATE patient SET gender = @gen WHERE patient_id = @id";
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    Console.WriteLine("Gender cannot be empty. Please try again.");
-                    FillInPatientGender();
+                    cmd.Parameters.AddWithValue("gen", gender);
+                    cmd.Parameters.AddWithValue("id", patientID);
+                    cmd.ExecuteNonQuery();
                 }
-                else if (gender.Any(char.IsDigit))
-                {
-                    Console.WriteLine("Last Name cannot contain numbers. Please try again.");
-                    FillInPatientGender();
-                }
-                else
-                {
-                    Console.WriteLine("Gender updated successfully.");
-                    return;
-                }
-                // Code to handle gender input and validation
-            } 
+            }
+            Console.WriteLine("Gender updated");
         }
 
-        public void FillInPatientAdress()
+        public void FillInPatientAdress(string patientID)
         {
             Console.WriteLine("Fill in your Adress: ");
             string adress = Console.ReadLine();
-            while (true)
+
+            if (!string.IsNullOrEmpty(adress))
             {
-                if (adress == "")
+                Console.WriteLine("Invalid adress.");
+                return;
+            }
+
+            using (var conn = GetUserConnection())
+            {
+                conn.Open();
+                string query = "UPDATE patient SET address = @adr WHERE patient_id = @id";
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    Console.WriteLine("Adress cannot be empty. Please try again.");
-                    FillInPatientAdress();
+                    cmd.Parameters.AddWithValue("adr", adress);
+                    cmd.Parameters.AddWithValue("id", patientID);
+                    cmd.ExecuteNonQuery();
                 }
-                else
-                {
-                    Console.WriteLine("Adress updated successfully.");
-                    return;
-                }
-                // Code to handle adress input and validation
-            } 
+            }
+            Console.WriteLine("Adress updated");
         }
 
-        public void FillInPatientPhoneNumber()
+        public void FillInPatientPhoneNumber(string patientID)
         {
             Console.WriteLine("Fill in your Phone Number: ");
             string phoneNumber = Console.ReadLine();
-            while (true)
+            
+            if (string.IsNullOrEmpty(phoneNumber))
             {
-                if (phoneNumber == "")
+                Console.WriteLine("Phone number cannot be empty. Please try again.");
+                return;
+            }
+
+            using (var conn = GetUserConnection())
+            {
+                conn.Open();
+                string query = "UPDATE patient SET phone = @pho WHERE patient_id = @id";
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    Console.WriteLine("Phone Number cannot be empty. Please try again.");
-                    FillInPatientPhoneNumber();
+                    cmd.Parameters.AddWithValue("pho", phoneNumber);
+                    cmd.Parameters.AddWithValue("id", patientID);
+                    cmd.ExecuteNonQuery();
                 }
-                else if (!phoneNumber.All(char.IsDigit))
-                {
-                    Console.WriteLine("Phone Number can only contain numbers. Please try again.");
-                    FillInPatientPhoneNumber();
-                }
-                else
-                {
-                    Console.WriteLine("Phone Number updated successfully.");
-                    return;
-                }
-                // Code to handle phone number input and validation
-            } 
+            }
+            Console.WriteLine("Phone number updated");
         }
 
-        public void FillInPatientDateOfBirth()
+        public void FillInPatientDateOfBirth(string patientID)
         {
             Console.WriteLine("Fill in your Date of Birth (YYYY-MM-DD): ");
-            string dateOfBirth = Console.ReadLine();
-            while (true)
+            string input = Console.ReadLine();
+
+            if (!DateTime.TryParse(input, out DateTime birthDate))
             {
-                if (dateOfBirth == "")
+                Console.WriteLine("Invalid date format. Use YYYY-MM-DD.");
+                return;
+            }
+
+            using (var conn = GetUserConnection())
+            {
+                conn.Open();
+
+                string query = "UPDATE patient SET birthdate = @birth WHERE patient_id = @id";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    Console.WriteLine("Date of Birth cannot be empty. Please try again.");
-                    FillInPatientDateOfBirth();
+                    cmd.Parameters.AddWithValue("birth", birthDate); 
+                    cmd.Parameters.AddWithValue("id", patientID);
+
+                    cmd.ExecuteNonQuery();
                 }
-                else if (!DateTime.TryParse(dateOfBirth, out _))
-                {
-                    Console.WriteLine("Invalid Date of Birth format. Please use YYYY-MM-DD. Try again.");
-                    FillInPatientDateOfBirth();
-                }
-                else
-                {
-                    Console.WriteLine("Date of Birth updated successfully.");
-                    UpdatePatientPersonalInfoMenu(); // Return to the update menu after successful update
-                }
-                // Code to handle date of birth input and validation
-            } 
+            }
+
+            Console.WriteLine("Date of birth updated");
         }
 
         public void FillInPatientPersonalInfoHandler(string infoType, string patientID)
         {
-            if (infoType == "1") { FillInPatientFirstName(); }
-            else if (infoType == "2") { FillInPatientLastName(); }
-            else if (infoType == "3") { FillInPatientGender(); }
-            else if (infoType == "4") { FillInPatientAdress(); }
-            else if (infoType == "5") { FillInPatientPhoneNumber(); }
-            else if (infoType == "6") { FillInPatientDateOfBirth(); }
+            if (infoType == "1") { FillInPatientFirstName(patientID); }
+            else if (infoType == "2") { FillInPatientLastName(patientID); }
+            else if (infoType == "3") { FillInPatientGender(patientID); }
+            else if (infoType == "4") { FillInPatientAdress(patientID); }
+            else if (infoType == "5") { FillInPatientPhoneNumber(patientID); }
+            else if (infoType == "6") { FillInPatientDateOfBirth(patientID); }
             else if (infoType == "7") { PatientPersonalInfoMenu(patientID); }
             else
             {
@@ -633,6 +645,33 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("Medical record created successfully!");
         }
 
+        public void ViewMedicalRecord(string patientID)
+        {
+            Console.WriteLine($"Medical Record for patient: {patientID}");
+            using (var conn = GetUserConnection())
+            {
+                conn.Open();
+                string query = @"SELECT record_id, appointment_id, diagnosis, prescription, description 
+                         FROM medical_record 
+                         WHERE patient_id = @id";
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("id", patientID);
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            Console.WriteLine($"Record ID: {reader["record_id"]}");
+                            Console.WriteLine($"Appointment ID: {reader["appointment_id"]}");
+                            Console.WriteLine($"Diagnosis: {reader["diagnosis"]}");
+                            Console.WriteLine($"Prescription: {reader["prescription"]}");
+                            Console.WriteLine($"Description: {reader["description"]}");
+                        }
+                    }
+                }
+            }
+        }
+
         public void RegisterAPatient()
         {
             Console.WriteLine("Register as a patient:");
@@ -731,7 +770,7 @@ namespace MedicalApp_DatabasTeknik
                 else if (patientChoice == "3")
                 {
                     Console.WriteLine("\n");
-                    ViewPatientMedicalRecord(patientID);
+                    ViewMedicalRecord(patientID);
                     continue;
                 }
 
@@ -917,7 +956,7 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("Updating Medical Record");
             Console.WriteLine("Enter Patient ID: ");
             string patientId = Console.ReadLine();
-            ViewPatientMedicalRecord(patientId);
+            ViewMedicalRecord(patientId);
             UpdatePatientPersonalInfoMenu();
             string updateChoice = Console.ReadLine();   
             FillInPatientPersonalInfoHandler(updateChoice, patientId);
@@ -1261,7 +1300,7 @@ namespace MedicalApp_DatabasTeknik
             }
         }
 
-        public void ViewMedicalRecords()
+        public void ViewMedicalRecordsForAdmin()
         {
             using (var conn = GetAdminConnection())
             {
@@ -1305,7 +1344,7 @@ namespace MedicalApp_DatabasTeknik
         {
             if (patientChoice == "1") { ViewPatientList(); }
             else if (patientChoice == "2") { ViewUpcomingAppointments(); }
-            else if (patientChoice == "3") { ViewMedicalRecords(); }
+            else if (patientChoice == "3") { ViewMedicalRecordsForAdmin(); }
             else if (patientChoice == "4") { AdminMainMenu(); }
             else
             {
