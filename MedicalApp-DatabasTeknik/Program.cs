@@ -82,7 +82,7 @@ namespace MedicalApp_DatabasTeknik
             }
         }
 
-        public bool DoctorLogin()
+        public string DoctorLogin()
         {
             Console.Write("Doctor ID: ");
             string id = Console.ReadLine();
@@ -101,12 +101,12 @@ namespace MedicalApp_DatabasTeknik
                         if (reader.Read())
                         {
                             Console.WriteLine("Login successful!");
-                            return true;
+                            return reader["doctor_id"].ToString(); ;
                         }
                         else
                         {
                             Console.WriteLine("Invalid login.");
-                            return false;
+                            return null;
                         }
                     }
                 }
@@ -764,6 +764,23 @@ namespace MedicalApp_DatabasTeknik
             }
         }
 
+        public void AdminUpdateDoctorFullName(string doctorID)
+        {
+            Console.WriteLine("Fill in Doctor's Full Name: ");
+            string fullName = Console.ReadLine();
+            using (var conn = GetAdminConnection())
+            {
+                conn.Open();
+                string query = "UPDATE doctor SET full_name = @fullName WHERE doctor_id = @id";
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("fullName", fullName);
+                    cmd.Parameters.AddWithValue("id", doctorID);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
         public void UpdateDoctorInformationMenu()
         {
             ShowDoctorInfoForAdmin();
@@ -775,22 +792,6 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("1. Full Name");
             Console.WriteLine("2. Phone Number");
             Console.WriteLine("3. Specialization");
-        }
-
-        public void UpdateDoctorFullName()
-        {
-            Console.WriteLine("Fill in Doctor's Full Name: ");
-            string fullName = Console.ReadLine();
-            if (fullName == "")
-            {
-                Console.WriteLine("Full Name cannot be empty. Please try again.");
-                UpdateDoctorFullName();
-            }
-            else
-            {
-                Console.WriteLine("Doctor's Full Name updated successfully to: " + fullName);
-                // Code to update doctor's full name in the database
-            }
         }
 
         public void UpdateDoctorPhoneNumber()
@@ -830,9 +831,9 @@ namespace MedicalApp_DatabasTeknik
             }
         }
 
-        public void FillInDoctorInformationHandler(string infoType)
+        public void FillInDoctorInformationHandler(string infoType, string doctorID)
         {
-            if (infoType == "1") { UpdateDoctorFullName(); }
+            if (infoType == "1") { AdminUpdateDoctorFullName(doctorID); }
             else if (infoType == "2") { UpdateDoctorPhoneNumber(); }
             else if (infoType == "3") { UpdateDoctorSpecialization(); }
             else if (infoType == "4") { AdminManageDoctorsMenu(); }
@@ -939,7 +940,9 @@ namespace MedicalApp_DatabasTeknik
             { 
                 UpdateDoctorInformationMenu(); 
                 string updateChoice = Console.ReadLine();
-                FillInDoctorInformationHandler(updateChoice);
+                Console.WriteLine("Enter Doctor ID to update: ");
+                string doctorID = Console.ReadLine();
+                FillInDoctorInformationHandler(updateChoice, doctorID);
             }
             else if (doctorChoice == "3") { RemoveDoctor(); }
             else if (doctorChoice == "4") { AdminMainMenu(); }
@@ -1018,7 +1021,8 @@ namespace MedicalApp_DatabasTeknik
                 else if (choice == "2")
                 {
                     Console.WriteLine("\n");
-                    if (DoctorLogin())
+                    string doctorId = DoctorLogin();
+                    if (doctorId != null)
                         DoctorInformationHandler();
                 }
                 else if (choice == "3")
