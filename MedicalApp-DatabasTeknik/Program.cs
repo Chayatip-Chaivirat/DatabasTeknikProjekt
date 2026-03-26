@@ -169,7 +169,8 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("1. Patient");
             Console.WriteLine("2. Doctor");
             Console.WriteLine("3. Administrator");
-            Console.WriteLine("4. Exit");
+            Console.WriteLine("4. Register a patient");
+            Console.WriteLine("5. Exit");
         }
 
         // Patient 
@@ -544,6 +545,69 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("Appointment booked!");
         }
 
+        public void RegisterAPatient()
+        {
+            Console.WriteLine("Register as a patient:");
+            Console.WriteLine("---------------------");
+
+            Console.Write("ID number: ");
+            string idNumber = Console.ReadLine();
+
+            Console.Write("First name: ");
+            string firstName = Console.ReadLine();
+
+            Console.Write("Last name: ");
+            string lastName = Console.ReadLine();
+
+            Console.Write("Address: ");
+            string address = Console.ReadLine();
+
+            Console.Write("Gender: ");
+            string gender = Console.ReadLine();
+
+            Console.Write("Phone number: ");
+            string phone = Console.ReadLine();
+
+            Console.Write("Date of birth (YYYY-MM-DD): ");
+            if (!DateTime.TryParse(Console.ReadLine(), out DateTime birthDate))
+            {
+                Console.WriteLine("Invalid date format.");
+                return;
+            }
+
+            DateTime registrationDate = DateTime.Now;
+
+            Console.Write("Password: ");
+            string pass = Console.ReadLine();
+
+            using (var conn = GetUserConnection())
+            {
+                conn.Open();
+
+                string query = @"INSERT INTO patient 
+                (patient_id, first_name, last_name, address, gender, phone, birthdate, registration_date, patient_password)
+                VALUES 
+                (@id, @first, @last, @address, @gender, @phone, @birth, @regDate, @pass)";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("id", idNumber);
+                    cmd.Parameters.AddWithValue("first", firstName);
+                    cmd.Parameters.AddWithValue("last", lastName);
+                    cmd.Parameters.AddWithValue("address", address);
+                    cmd.Parameters.AddWithValue("gender", gender);
+                    cmd.Parameters.AddWithValue("phone", phone);
+                    cmd.Parameters.AddWithValue("birth", birthDate);
+                    cmd.Parameters.AddWithValue("regDate", registrationDate);
+                    cmd.Parameters.AddWithValue("pass", pass);
+
+                    cmd.ExecuteNonQuery();
+                }
+
+                Console.WriteLine("Patient registered successfully!");
+            }
+        }
+
         public void PatientInformationHandler(string patientID)
         {
             while (true)
@@ -582,6 +646,7 @@ namespace MedicalApp_DatabasTeknik
                     ViewPatientMedicalRecord(patientID);
                     continue;
                 }
+
                 else if (patientChoice == "4")
                 {
                     Console.WriteLine("\n");
@@ -1070,6 +1135,10 @@ namespace MedicalApp_DatabasTeknik
                         AdminInformationHandler();
                 }
                 else if (choice == "4")
+                {
+                    RegisterAPatient();
+                }
+                else if (choice == "5")
                 {
                     Console.WriteLine("Exiting...");
                     return;
