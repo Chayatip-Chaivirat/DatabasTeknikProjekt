@@ -794,48 +794,86 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("3. Specialization");
         }
 
-        public void UpdateDoctorPhoneNumber()
+        public void UpdateDoctorPhoneNumber(string doctorID)
         {
             Console.WriteLine("Fill in Doctor's Phone Number: ");
             string phoneNumber = Console.ReadLine();
-            if (phoneNumber == "")
+           using (var conn = GetAdminConnection())
             {
-                Console.WriteLine("Phone Number cannot be empty. Please try again.");
-                UpdateDoctorPhoneNumber();
-            }
-            else if (!phoneNumber.All(char.IsDigit))
-            {
-                Console.WriteLine("Phone Number can only contain numbers. Please try again.");
-                UpdateDoctorPhoneNumber();
-            }
-            else
-            {
-                Console.WriteLine("Doctor's Phone Number updated successfully to: " + phoneNumber);
-                // Code to update doctor's phone number in the database
+                conn.Open();
+                string query = "UPDATE doctor SET phone = @phone WHERE doctor_id = @id";
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("phone", phoneNumber);
+                    cmd.Parameters.AddWithValue("id", doctorID);
+                    cmd.ExecuteNonQuery();
+                }
             }
         }
 
-        public void UpdateDoctorSpecialization()
+        public bool SpecializationExists(int specId)
         {
-            Console.WriteLine("Fill in Doctor's Specialization: ");
-            string specialization = Console.ReadLine();
-            if (specialization == "")
+            using (var conn = GetUserConnection())
             {
-                Console.WriteLine("Specialization cannot be empty. Please try again.");
-                UpdateDoctorSpecialization();
+                conn.Open();
+
+                string query = "SELECT 1 FROM specialization WHERE specialization_id = @id";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("id", specId);
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        return reader.Read();
+                    }
+                }
             }
-            else
+        }
+
+        public void UpdateDoctorSpecialization(string doctorID)
+        {
+            Console.WriteLine("Enter Doctor's Specialization ID: ");
+            string input = Console.ReadLine();
+
+            if (!int.TryParse(input, out int specializationId))
             {
-                Console.WriteLine("Doctor's Specialization updated successfully to: " + specialization);
-                // Code to update doctor's specialization in the database
+                Console.WriteLine("Invalid specialization ID. Must be a number.");
+                return;
+            }
+
+            if (!SpecializationExists(specializationId))
+            {
+                Console.WriteLine("Specialization ID does not exist.");
+                return;
+            }
+
+            using (var conn = GetAdminConnection())
+            {
+                conn.Open();
+
+                string query = "UPDATE doctor SET specialization_id = @specId WHERE doctor_id = @id";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("specId", specializationId);
+                    cmd.Parameters.AddWithValue("id", doctorID);
+
+                    int rowsAffected = cmd.ExecuteNonQuery();
+
+                    if (rowsAffected > 0)
+                        Console.WriteLine("Doctor's specialization updated successfully.");
+                    else
+                        Console.WriteLine("Doctor not found.");
+                }
             }
         }
 
         public void FillInDoctorInformationHandler(string infoType, string doctorID)
         {
             if (infoType == "1") { AdminUpdateDoctorFullName(doctorID); }
-            else if (infoType == "2") { UpdateDoctorPhoneNumber(); }
-            else if (infoType == "3") { UpdateDoctorSpecialization(); }
+            else if (infoType == "2") { UpdateDoctorPhoneNumber(doctorID); }
+            else if (infoType == "3") { UpdateDoctorSpecialization(doctorID); }
             else if (infoType == "4") { AdminManageDoctorsMenu(); }
             else
             {
