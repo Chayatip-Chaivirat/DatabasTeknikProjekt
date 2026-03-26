@@ -638,13 +638,12 @@ namespace MedicalApp_DatabasTeknik
                 conn.Open();
 
                 string query = @"INSERT INTO medical_record
-                (patient_id, doctor_id, appointment_id, diagnosis, prescription, description)
-                VALUES (@pid, @did, @aid, @diag, @pres, @desc)";
+                (patient_id, appointment_id, diagnosis, prescription, description)
+                VALUES (@pid, @aid, @diag, @pres, @desc)";
 
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("pid", patientId);
-                    cmd.Parameters.AddWithValue("did", doctorId);
                     cmd.Parameters.AddWithValue("aid", int.Parse(appointmentId));
                     cmd.Parameters.AddWithValue("diag", diagnosis);
                     cmd.Parameters.AddWithValue("pres", prescription);
@@ -1048,7 +1047,8 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("1. Add Specialization");
             Console.WriteLine("2. Update Doctor Information");
             Console.WriteLine("3. Remove Doctor");
-            Console.WriteLine("4. Go Back");
+            Console.WriteLine("4. Register a Doctor");
+            Console.WriteLine("5. Go Back");
         }
 
         public void AddSpecialization()
@@ -1207,6 +1207,51 @@ namespace MedicalApp_DatabasTeknik
             }
         }
 
+        public void RegisterADoctor()
+        {
+            Console.WriteLine("Register a new doctor:");
+            Console.WriteLine("---------------------");
+            Console.Write("Doctor ID in this format: AAAxxx where x is number: ");
+            string doctorId = Console.ReadLine();
+            Console.Write("Full Name: ");
+            string fullName = Console.ReadLine();
+            Console.Write("Specialization ID: ");
+            string specializationId = Console.ReadLine();
+            if (!int.TryParse(specializationId, out int specId))
+            {
+                Console.WriteLine("Invalid specialization ID. Must be a number.");
+                return;
+            }
+             if (!SpecializationExists(specId))
+            {
+                Console.WriteLine("Specialization ID does not exist.");
+                return;
+            }
+
+            Console.Write("Phone Number: ");
+            string phone = Console.ReadLine();
+            Console.Write("Password: ");
+            string password = Console.ReadLine();
+            using (var conn = GetAdminConnection())
+            {
+                conn.Open();
+                string query = @"INSERT INTO doctor 
+                (doctor_id, full_name, specialization_id, phone, doctor_password)
+                VALUES 
+                (@id, @fullName, @specId, @phone, @pass)";
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("id", doctorId);
+                    cmd.Parameters.AddWithValue("fullName", fullName);
+                    cmd.Parameters.AddWithValue("specId", specId); 
+                    cmd.Parameters.AddWithValue("phone", phone);
+                    cmd.Parameters.AddWithValue("pass", password);
+                    cmd.ExecuteNonQuery();
+                }
+                Console.WriteLine("Doctor registered successfully!");
+            }
+        }
+
         public void FillInDoctorInformationHandler(string infoType, string doctorID)
         {
             if (infoType == "1") { AdminUpdateDoctorFullName(doctorID); }
@@ -1332,7 +1377,11 @@ namespace MedicalApp_DatabasTeknik
                 string doctorID = Console.ReadLine();
                 DeleteDoctor(doctorID); 
             }
-            else if (doctorChoice == "4") { AdminMainMenu(); }
+            else if (doctorChoice == "4") 
+            { 
+                RegisterADoctor();
+            }
+            else if (doctorChoice == "5") { return; }
             else
             {
                 Console.WriteLine("Invalid choice. Please try again.");
