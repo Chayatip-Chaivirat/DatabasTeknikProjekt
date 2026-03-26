@@ -477,6 +477,8 @@ namespace MedicalApp_DatabasTeknik
                     }
                 }
             }
+
+            ShowSpecializations();
         }
 
         public void DeleteDoctor(string doctorID)
@@ -1249,6 +1251,8 @@ namespace MedicalApp_DatabasTeknik
                     cmd.ExecuteNonQuery();
                 }
                 Console.WriteLine("Doctor registered successfully!");
+
+                GenerateScheduleForDoctor(doctorId);
             }
         }
 
@@ -1280,7 +1284,7 @@ namespace MedicalApp_DatabasTeknik
             {
                 conn.Open();
 
-                string query = "SELECT patient_id, first_name, last_name FROM patient";
+                string query = "SELECT patient_id, first_name, last_name, gender, address, phone, birthdate, registration_date, patient_password FROM patient";
 
                 using (var cmd = new NpgsqlCommand(query, conn))
                 using (var reader = cmd.ExecuteReader())
@@ -1289,9 +1293,10 @@ namespace MedicalApp_DatabasTeknik
 
                     while (reader.Read())
                     {
-                        Console.WriteLine(
-                            $"ID: {reader["patient_id"]}, Name: {reader["first_name"]} {reader["last_name"]}"
-                        );
+                        Console.WriteLine($"ID: {reader["patient_id"]}, Name: {reader["first_name"]} {reader["last_name"]}");
+                        Console.WriteLine($"Gender: {reader["gender"]}, Address: {reader["address"]}, Phone: {reader["phone"]}");
+                        Console.WriteLine($"Birthdate: {reader["birthdate"]}, Registration Date: {reader["registration_date"]}, Password: {reader["patient_password"]}");
+                        Console.WriteLine("\n");
                     }
                 }
             }
@@ -1302,16 +1307,16 @@ namespace MedicalApp_DatabasTeknik
             using (var conn = GetAdminConnection())
             {
                 conn.Open();
-                string query = "SELECT appointment_id, patient_id, doctor_id, appointment_date FROM appointment WHERE appointment_date >= CURRENT_DATE ORDER BY appointment_date";
+                string query = "SELECT appointment_id, patient_id, doctor_id, appointment_date, appointment_time, booking_date FROM appointment WHERE appointment_date >= CURRENT_DATE ORDER BY appointment_date";
                 using (var cmd = new NpgsqlCommand(query, conn))
                 using (var reader = cmd.ExecuteReader())
                 {
                     Console.WriteLine("Upcoming Appointments:");
                     while (reader.Read())
                     {
-                        Console.WriteLine(
-                            $"Appointment ID: {reader["appointment_id"]}, Patient ID: {reader["patient_id"]}, Doctor ID: {reader["doctor_id"]}, Date: {reader["appointment_date"]}"
-                        );
+                        Console.WriteLine($"Appointment ID: {reader["appointment_id"]}, Patient ID: {reader["patient_id"]}, Doctor ID: {reader["doctor_id"]}, Date: {reader["appointment_date"]}");
+                        Console.WriteLine($"Time: {reader["appointment_time"]}, Booking Date: {reader["booking_date"]}");
+                        Console.WriteLine("\n");
                     }
                 }
             }
@@ -1345,16 +1350,16 @@ namespace MedicalApp_DatabasTeknik
             using (var conn = GetAdminConnection())
             {
                 conn.Open();
-                string query = "SELECT record_id, patient_id, diagnosis FROM medical_record";
+                string query = "SELECT record_id, patient_id, diagnosis, description, prescription FROM medical_record";
                 using (var cmd = new NpgsqlCommand(query, conn))
                 using (var reader = cmd.ExecuteReader())
                 {
                     Console.WriteLine("Medical Records:");
                     while (reader.Read())
                     {
-                        Console.WriteLine(
-                            $"Record ID: {reader["record_id"]}, Patient ID: {reader["patient_id"]}, Diagnosis: {reader["diagnosis"]}"
-                        );
+                        Console.WriteLine($"Record ID: {reader["record_id"]}, Patient ID: {reader["patient_id"]}, Diagnosis: {reader["diagnosis"]}");
+                        Console.WriteLine($"Description: {reader["description"]}");
+                        Console.WriteLine($"Prescription: {reader["prescription"]}");
                     }
                 }
             }
