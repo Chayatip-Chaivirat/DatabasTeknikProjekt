@@ -582,6 +582,57 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("Appointment is booked");
         }
 
+        public void CreateMedicalRecord(string doctorId)
+        {
+            Console.WriteLine("Create Medical Record");
+
+            Console.Write("Enter Patient ID: ");
+            string patientId = Console.ReadLine();
+
+            if (RetrivePatientIdFromDatabase(patientId) == null)
+            {
+                Console.WriteLine("Patient not found.");
+                return;
+            }
+
+            ViewSpecificPatientAppointments(patientId);
+
+            Console.Write("Enter Appointment ID: ");
+            string appointmentId = Console.ReadLine();
+
+            Console.Write("Diagnosis: ");
+            string diagnosis = Console.ReadLine();
+
+            Console.Write("Prescription: ");
+            string prescription = Console.ReadLine();
+
+            Console.Write("Description: ");
+            string description = Console.ReadLine();
+
+            using (var conn = GetUserConnection())
+            {
+                conn.Open();
+
+                string query = @"INSERT INTO medical_record
+                (patient_id, doctor_id, appointment_id, diagnosis, prescription, description)
+                VALUES (@pid, @did, @aid, @diag, @pres, @desc)";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("pid", patientId);
+                    cmd.Parameters.AddWithValue("did", doctorId);
+                    cmd.Parameters.AddWithValue("aid", int.Parse(appointmentId));
+                    cmd.Parameters.AddWithValue("diag", diagnosis);
+                    cmd.Parameters.AddWithValue("pres", prescription);
+                    cmd.Parameters.AddWithValue("desc", description);
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            Console.WriteLine("Medical record created successfully!");
+        }
+
         public void RegisterAPatient()
         {
             Console.WriteLine("Register as a patient:");
@@ -895,7 +946,7 @@ namespace MedicalApp_DatabasTeknik
                 else if (doctorChoice == "3")
                 {
                     Console.WriteLine("\n");
-                    UpdateMedicalRecord();
+                    CreateMedicalRecord(doctorID);
                 }
                 else if (doctorChoice == "4")
                 {
@@ -1182,6 +1233,29 @@ namespace MedicalApp_DatabasTeknik
                         Console.WriteLine(
                             $"Appointment ID: {reader["appointment_id"]}, Patient ID: {reader["patient_id"]}, Doctor ID: {reader["doctor_id"]}, Date: {reader["appointment_date"]}"
                         );
+                    }
+                }
+            }
+        }
+
+        public void ViewSpecificPatientAppointments(string patientID)
+        {
+            using (var conn = GetUserConnection())
+            {
+                conn.Open();
+                string query = "SELECT appointment_id, doctor_id, appointment_date FROM appointment WHERE patient_id = @pid ORDER BY appointment_date";
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("pid", patientID);
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        Console.WriteLine($"Appointments for Patient ID: {patientID}");
+                        while (reader.Read())
+                        {
+                            Console.WriteLine(
+                                $"Appointment ID: {reader["appointment_id"]}, Doctor ID: {reader["doctor_id"]}, Date: {reader["appointment_date"]}"
+                            );
+                        }
                     }
                 }
             }
