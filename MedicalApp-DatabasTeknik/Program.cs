@@ -496,9 +496,8 @@ namespace MedicalApp_DatabasTeknik
         public void BookAppointment(string patientID)
         {
             ViewPatientAppointments(patientID);
-            Console.WriteLine($"Patient ID: {patientID}");
-            string validPatient = RetrivePatientIdFromDatabase(patientID);
 
+            string validPatient = RetrivePatientIdFromDatabase(patientID);
             if (validPatient == null)
             {
                 Console.WriteLine("Invalid patient ID.");
@@ -506,43 +505,81 @@ namespace MedicalApp_DatabasTeknik
             }
 
             ShowDoctors();
-            ShowSpecializations();
-
             Console.Write("Doctor ID: ");
             string doctorId = Console.ReadLine();
 
-            if (!DoctorExists(doctorId)) // Check if doctor ID exists in the database
+            if (!DoctorExists(doctorId))
             {
                 Console.WriteLine("Doctor does not exist!");
                 return;
             }
 
-            Console.Write("Date (YYYY-MM-DD): ");
-            DateTime date = DateTime.Parse(Console.ReadLine());
+            ShowAvailableTimeSlots(doctorId);
 
-            Console.Write("Time (HH:MM): ");
+            Console.Write("Choose Day: ");
+            string day = Console.ReadLine();
+
+            Console.Write("Choose Time (HH:MM): ");
             TimeSpan time = TimeSpan.Parse(Console.ReadLine());
 
             using (var conn = GetUserConnection())
             {
                 conn.Open();
 
-                string query = @"INSERT INTO appointment 
-        (patient_id, doctor_id, appointment_date, appointment_time)
-        VALUES (@pid, @did, @date, @time)";
+                // Check if slot exists and is available
+                string checkQuery = @"SELECT is_available 
+                             FROM doctor_schedule
+                             WHERE doctor_id = @doc 
+                             AND day_of_week = @day 
+                             AND time_slot = @time";
 
-                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var checkCmd = new NpgsqlCommand(checkQuery, conn))
+                {
+                    checkCmd.Parameters.AddWithValue("doc", doctorId);
+                    checkCmd.Parameters.AddWithValue("day", day);
+                    checkCmd.Parameters.AddWithValue("time", time);
+
+                    var result = checkCmd.ExecuteScalar();
+
+                    if (result == null || !(bool)result)
+                    {
+                        Console.WriteLine("Slot not available!");
+                        return;
+                    }
+                }
+
+                // Insert appointment
+                string insertQuery = @"INSERT INTO appointment 
+            (patient_id, doctor_id, appointment_date, appointment_time)
+            VALUES (@pid, @did, CURRENT_DATE, @time)";
+
+                using (var cmd = new NpgsqlCommand(insertQuery, conn))
                 {
                     cmd.Parameters.AddWithValue("pid", patientID);
                     cmd.Parameters.AddWithValue("did", doctorId);
-                    cmd.Parameters.AddWithValue("date", date);
                     cmd.Parameters.AddWithValue("time", time);
 
                     cmd.ExecuteNonQuery();
                 }
+
+                // Mark slot as unavailable
+                string updateQuery = @"UPDATE doctor_schedule
+                               SET is_available = FALSE
+                               WHERE doctor_id = @doc
+                               AND day_of_week = @day
+                               AND time_slot = @time";
+
+                using (var updateCmd = new NpgsqlCommand(updateQuery, conn))
+                {
+                    updateCmd.Parameters.AddWithValue("doc", doctorId);
+                    updateCmd.Parameters.AddWithValue("day", day);
+                    updateCmd.Parameters.AddWithValue("time", time);
+
+                    updateCmd.ExecuteNonQuery();
+                }
             }
 
-            Console.WriteLine("Appointment booked!");
+            Console.WriteLine("Appointment is booked");
         }
 
         public void RegisterAPatient()
@@ -670,24 +707,157 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("3. Update Medical Record");
             Console.WriteLine("4. Logout");
         }
-        public void UpdateTimeTable()
+
+        public void GenerateScheduleForDoctor(string doctorId)
         {
-            Console.WriteLine("Update Time Table:");
-            Console.WriteLine("Choose a day to update: ");
-            string day = Console.ReadLine();
-            int availableTimeslots = new Random().Next(1, 5);  
-            Console.WriteLine("Available timeslots: " + availableTimeslots);
-            Console.WriteLine("Choose a timeslot to update: ");
-            string timeslot = Console.ReadLine();
-            if (timeslot == "" || !int.TryParse(timeslot, out int timeslotNumber) || timeslotNumber < 1 || timeslotNumber > availableTimeslots)
+            string[] days = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
+
+            List<TimeSpan> times = new List<TimeSpan>
             {
-                Console.WriteLine("Invalid timeslot, try again.");
-                UpdateTimeTable();
+                new TimeSpan(9, 0, 0),
+                new TimeSpan(9, 30, 0),
+                new TimeSpan(10, 0, 0),
+                new TimeSpan(10, 30, 0)
+            };
+
+            using (var conn = GetUserConnection())
+            {
+                conn.Open();
+
+                foreach (var day in days)
+                {
+                    foreach (var time in times)
+                    {
+                        string query = @"INSERT INTO doctor_schedule 
+                        (doctor_id, day_of_week, time_slot)
+                        VALUES (@doc, @day, @time)
+                        ON CONFLICT DO NOTHING"; // prevents duplicates
+
+                        using (var cmd = new NpgsqlCommand(query, conn))
+                        {
+                            cmd.Parameters.AddWithValue("doc", doctorId);
+                            cmd.Parameters.AddWithValue("day", day);
+                            cmd.Parameters.AddWithValue("time", time);
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                }
             }
+
+            Console.WriteLine("Schedule generated for doctor: " + doctorId);
+        }
+
+        public void GenerateScheduleForAllDoctors()
+        {
+            using (var conn = GetUserConnection())
+            {
+                conn.Open();
+
+                string query = "SELECT doctor_id FROM doctor";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    List<string> doctorIds = new List<string>();
+
+                    while (reader.Read())
+                    {
+                        doctorIds.Add(reader["doctor_id"].ToString());
+                    }
+
+                    reader.Close();
+
+                    foreach (var doctorId in doctorIds)
+                    {
+                        GenerateScheduleForDoctor(doctorId);
+                    }
+                }
+            }
+        }
+        public void ShowAvailableTimeSlots(string doctorId)
+        {
+            using (var conn = GetUserConnection())
+            {
+                conn.Open();
+
+                string query = @"SELECT day_of_week, time_slot
+                         FROM doctor_schedule
+                         WHERE doctor_id = @doc
+                         AND is_available = TRUE
+                         ORDER BY day_of_week, time_slot";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("doc", doctorId);
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        Console.WriteLine("Available Time Slots:");
+
+                        while (reader.Read())
+                        {
+                            Console.WriteLine($"{reader["day_of_week"]} - {reader["time_slot"]}");
+                        }
+                    }
+                }
+            }
+        }
+
+        public void UpdateTimeSlot(string doctorId)
+        {
+            Console.WriteLine("Enter day (e.g., Monday): ");
+            string day = Console.ReadLine();
+
+            Console.WriteLine("Enter time (HH:MM): ");
+            TimeSpan time = TimeSpan.Parse(Console.ReadLine());
+
+            Console.WriteLine("1. Set AVAILABLE");
+            Console.WriteLine("2. Set UNAVAILABLE");
+            string choice = Console.ReadLine();
+
+            bool newStatus;
+
+            if (choice == "1")
+                newStatus = true;
+            else if (choice == "2")
+                newStatus = false;
             else
             {
-                Console.WriteLine("Timeslot " + timeslot + " updated successfully for " + day);
-                // Code to update the time table in the database
+                Console.WriteLine("Invalid choice.");
+                return;
+            }
+
+            using (var conn = GetUserConnection())
+            {
+                conn.Open();
+
+                string query = @"UPDATE doctor_schedule
+                         SET is_available = @status
+                         WHERE doctor_id = @doc
+                         AND day_of_week = @day
+                         AND time_slot = @time";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("status", newStatus);
+                    cmd.Parameters.AddWithValue("doc", doctorId);
+                    cmd.Parameters.AddWithValue("day", day);
+                    cmd.Parameters.AddWithValue("time", time);
+
+                    int rows = cmd.ExecuteNonQuery();
+
+                    if (rows > 0)
+                    {
+                        if (newStatus)
+                            Console.WriteLine("The timeslot is now AVAILABLE");
+                        else
+                            Console.WriteLine("The timeslot is now UNAVAILABLE");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Timeslot not found.");
+                    }
+                }
             }
         }
 
@@ -702,7 +872,7 @@ namespace MedicalApp_DatabasTeknik
             FillInPatientPersonalInfoHandler(updateChoice, patientId);
         }
 
-        public void DoctorInformationHandler()
+        public void DoctorInformationHandler(string doctorID)
         {
             while (true)
             {
@@ -719,7 +889,8 @@ namespace MedicalApp_DatabasTeknik
                 else if (doctorChoice == "2")
                 {
                     Console.WriteLine("\n");
-                    UpdateTimeTable();
+                    ShowAvailableTimeSlots(doctorID);
+                    UpdateTimeSlot(doctorID);
                 }
                 else if (doctorChoice == "3")
                 {
@@ -1126,7 +1297,7 @@ namespace MedicalApp_DatabasTeknik
                     Console.WriteLine("\n");
                     string doctorId = DoctorLogin();
                     if (doctorId != null)
-                        DoctorInformationHandler();
+                        DoctorInformationHandler(doctorId);
                 }
                 else if (choice == "3")
                 {
