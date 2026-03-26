@@ -485,6 +485,24 @@ namespace MedicalApp_DatabasTeknik
             }
         }
 
+        public void DeleteDoctor(string doctorID)
+        {
+            using (var conn = GetAdminConnection())
+            {
+                conn.Open();
+                string query = "DELETE FROM doctor WHERE doctor_id = @id";
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("id", doctorID);
+                    int rowsAffected = cmd.ExecuteNonQuery();
+                    if (rowsAffected > 0)
+                        Console.WriteLine("Doctor removed successfully.");
+                    else
+                        Console.WriteLine("Doctor not found.");
+                }
+            }
+        }
+
         public void ShowSpecializations()
         {
             using (var conn = GetUserConnection())
@@ -1208,23 +1226,6 @@ namespace MedicalApp_DatabasTeknik
             }
         }
 
-        public void RemoveDoctor()
-        {
-            Console.WriteLine("Removing Doctor:");
-            Console.WriteLine("Enter Doctor ID: ");
-            string doctorId = Console.ReadLine();
-            if (doctorId == "")
-            {
-                Console.WriteLine("Doctor ID cannot be empty. Please try again.");
-                RemoveDoctor();
-            }
-            else
-            {
-                Console.WriteLine("Doctor with ID " + doctorId + " removed successfully.");
-                // Code to remove doctor from the database
-            }
-        }
-
         public void AdminManagePatientsMenu()
         {
             Console.WriteLine("Managing Patients:");
@@ -1331,7 +1332,12 @@ namespace MedicalApp_DatabasTeknik
                 string doctorID = Console.ReadLine();
                 FillInDoctorInformationHandler(updateChoice, doctorID);
             }
-            else if (doctorChoice == "3") { RemoveDoctor(); }
+            else if (doctorChoice == "3") 
+            {
+                Console.WriteLine("Enter Doctor ID to update: ");
+                string doctorID = Console.ReadLine();
+                DeleteDoctor(doctorID); 
+            }
             else if (doctorChoice == "4") { AdminMainMenu(); }
             else
             {
