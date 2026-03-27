@@ -4,16 +4,6 @@ namespace MedicalApp_DatabasTeknik
 {
     internal class Program
     {
-        public NpgsqlConnection GetAdminConnection() // For administrator login
-        {
-            Console.Write("Enter database password: ");
-            string dbPassword = Console.ReadLine();
-
-            string connString = $"Host=postgres.mau.se;Username=an5964;Password={dbPassword};Database=an5964;Port=55432";
-
-            return new NpgsqlConnection(connString);
-        }
-
         public NpgsqlConnection GetUserConnection() // For patients and doctors
         {
             string connString = $"Host=postgres.mau.se;Username=an5964;Password=vzsjll4k;Database=an5964;Port=55432";
@@ -124,7 +114,7 @@ namespace MedicalApp_DatabasTeknik
             Console.Write("Password: ");
             string password = Console.ReadLine();
 
-            using (var conn = GetAdminConnection())
+            using (var conn = GetUserConnection())
             {
                 conn.Open();
 
