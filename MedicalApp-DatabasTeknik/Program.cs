@@ -567,13 +567,14 @@ namespace MedicalApp_DatabasTeknik
                 // Insert appointment
                 string insertQuery = @"INSERT INTO appointment 
             (patient_id, doctor_id, appointment_date, appointment_time)
-            VALUES (@pid, @did, @day, @time)";
+            VALUES (@pid, @did, @day, @time)"; // @day is not correct
 
                 using (var cmd = new NpgsqlCommand(insertQuery, conn))
                 {
                     cmd.Parameters.AddWithValue("pid", patientID);
                     cmd.Parameters.AddWithValue("did", doctorId);
                     cmd.Parameters.AddWithValue("time", time);
+                    cmd.Parameters.AddWithValue("day", day);
 
                     cmd.ExecuteNonQuery();
                 }
@@ -1045,6 +1046,7 @@ namespace MedicalApp_DatabasTeknik
 
         public void AddSpecialization()
         {
+            ShowSpecializations();
             using (var conn = GetUserConnection())
             {
                 conn.Open();
