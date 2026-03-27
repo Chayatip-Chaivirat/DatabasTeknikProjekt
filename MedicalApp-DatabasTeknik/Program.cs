@@ -567,7 +567,7 @@ namespace MedicalApp_DatabasTeknik
                 // Insert appointment
                 string insertQuery = @"INSERT INTO appointment 
             (patient_id, doctor_id, appointment_date, appointment_time)
-            VALUES (@pid, @did, CURRENT_DATE, @time)";
+            VALUES (@pid, @did, @day, @time)";
 
                 using (var cmd = new NpgsqlCommand(insertQuery, conn))
                 {
