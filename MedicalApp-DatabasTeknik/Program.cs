@@ -483,7 +483,7 @@ namespace MedicalApp_DatabasTeknik
 
         public void DeleteDoctor(string doctorID)
         {
-            using (var conn = GetAdminConnection())
+            using (var conn = GetUserConnection())
             {
                 conn.Open();
                 string query = "DELETE FROM doctor WHERE doctor_id = @id";
@@ -1055,7 +1055,7 @@ namespace MedicalApp_DatabasTeknik
 
         public void AddSpecialization()
         {
-            using (var conn = GetAdminConnection())
+            using (var conn = GetUserConnection())
             {
                 conn.Open();
                 Console.WriteLine("Enter new specialization name: ");
@@ -1084,7 +1084,7 @@ namespace MedicalApp_DatabasTeknik
 
         public void ShowDoctorInfoForAdmin()
         {
-            using (var conn = GetAdminConnection())
+            using (var conn = GetUserConnection())
             {
                 conn.Open();
                 string query = "SELECT doctor_id, full_name, specialization_id, phone, doctor_password FROM doctor";
@@ -1108,7 +1108,7 @@ namespace MedicalApp_DatabasTeknik
         {
             Console.WriteLine("Fill in Doctor's Full Name: ");
             string fullName = Console.ReadLine();
-            using (var conn = GetAdminConnection())
+            using (var conn = GetUserConnection())
             {
                 conn.Open();
                 string query = "UPDATE doctor SET full_name = @fullName WHERE doctor_id = @id";
@@ -1138,7 +1138,7 @@ namespace MedicalApp_DatabasTeknik
         {
             Console.WriteLine("Fill in Doctor's Phone Number: ");
             string phoneNumber = Console.ReadLine();
-           using (var conn = GetAdminConnection())
+           using (var conn = GetUserConnection())
             {
                 conn.Open();
                 string query = "UPDATE doctor SET phone = @phone WHERE doctor_id = @id";
@@ -1188,7 +1188,7 @@ namespace MedicalApp_DatabasTeknik
                 return;
             }
 
-            using (var conn = GetAdminConnection())
+            using (var conn = GetUserConnection())
             {
                 conn.Open();
 
@@ -1234,7 +1234,7 @@ namespace MedicalApp_DatabasTeknik
             string phone = Console.ReadLine();
             Console.Write("Password: ");
             string password = Console.ReadLine();
-            using (var conn = GetAdminConnection())
+            using (var conn = GetUserConnection())
             {
                 conn.Open();
                 string query = @"INSERT INTO doctor 
@@ -1280,7 +1280,7 @@ namespace MedicalApp_DatabasTeknik
 
         public void ViewPatientList()
         {
-            using (var conn = GetAdminConnection())
+            using (var conn = GetUserConnection())
             {
                 conn.Open();
 
@@ -1304,7 +1304,7 @@ namespace MedicalApp_DatabasTeknik
 
         public void ViewUpcomingAppointments()
         {
-            using (var conn = GetAdminConnection())
+            using (var conn = GetUserConnection())
             {
                 conn.Open();
                 string query = "SELECT appointment_id, patient_id, doctor_id, appointment_date, appointment_time, booking_date FROM appointment WHERE appointment_date >= CURRENT_DATE ORDER BY appointment_date";
@@ -1347,7 +1347,7 @@ namespace MedicalApp_DatabasTeknik
 
         public void ViewMedicalRecordsForAdmin()
         {
-            using (var conn = GetAdminConnection())
+            using (var conn = GetUserConnection())
             {
                 conn.Open();
                 string query = "SELECT record_id, patient_id, diagnosis, description, prescription FROM medical_record";
@@ -1469,8 +1469,16 @@ namespace MedicalApp_DatabasTeknik
                 else if (choice == "3")
                 {
                     Console.WriteLine("\n");
-                    if (AdminLogin())
+                    if (!AdminLogin())
+                    {
+                        Console.WriteLine("Invalid admin credentials.");
+                        continue;
+                    }
+                    else
+                    {
+                        Console.WriteLine("\n");
                         AdminInformationHandler();
+                    }
                 }
                 else if (choice == "4")
                 {
