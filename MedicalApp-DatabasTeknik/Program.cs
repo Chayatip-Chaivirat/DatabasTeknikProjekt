@@ -4,7 +4,7 @@ namespace MedicalApp_DatabasTeknik
 {
     internal class Program
     {
-        public NpgsqlConnection GetUserConnection() // For patients and doctors
+        public NpgsqlConnection GetUserConnection() 
         {
             string connString = $"Host=postgres.mau.se;Username=an5964;Password=vzsjll4k;Database=an5964;Port=55432";
 
