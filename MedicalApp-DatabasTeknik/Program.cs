@@ -509,6 +509,36 @@ namespace MedicalApp_DatabasTeknik
             }
         }
 
+        public DateOnly ConvertToDateTime(string day)
+        {
+            DateOnly date = new DateOnly();
+            if (day == "Monday")
+            {
+                return date = new DateOnly(2026,04,06);
+            }
+            else if (day == "Tuesday")
+            {
+                return date = new DateOnly(2026, 04, 07);
+            }
+            else if (day == "Wednesday")
+            {
+                return date = new DateOnly(2026, 04, 08);
+            }
+            else if (day == "Thursday")
+            {
+                return date = new DateOnly(2026, 04, 09);
+            }
+            else if (day == "Friday")
+            {
+                return date = new DateOnly(2026, 04, 10);
+            }
+            else
+            {
+                Console.WriteLine("Invalid day.");
+                return date;
+            }
+        }
+
         public void BookAppointment(string patientID)
         {
             ViewPatientAppointments(patientID);
@@ -534,6 +564,7 @@ namespace MedicalApp_DatabasTeknik
 
             Console.Write("Choose Day: ");
             string day = Console.ReadLine();
+            DateOnly dayToDate = ConvertToDateTime(day);
 
             Console.Write("Choose Time (HH:MM): ");
             TimeSpan time = TimeSpan.Parse(Console.ReadLine());
@@ -574,7 +605,7 @@ namespace MedicalApp_DatabasTeknik
                     cmd.Parameters.AddWithValue("pid", patientID);
                     cmd.Parameters.AddWithValue("did", doctorId);
                     cmd.Parameters.AddWithValue("time", time);
-                    cmd.Parameters.AddWithValue("day", day);
+                    cmd.Parameters.AddWithValue("day", dayToDate);
 
                     cmd.ExecuteNonQuery();
                 }
