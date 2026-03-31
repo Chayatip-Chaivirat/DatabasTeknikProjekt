@@ -542,6 +542,7 @@ namespace MedicalApp_DatabasTeknik
         public void BookAppointment(string patientID)
         {
             ViewPatientAppointments(patientID);
+            Console.WriteLine("\n");
 
             string validPatient = RetrivePatientIdFromDatabase(patientID);
             if (validPatient == null)
@@ -628,6 +629,7 @@ namespace MedicalApp_DatabasTeknik
             }
 
             Console.WriteLine("Appointment is booked");
+            Console.WriteLine($"Doctor: {doctorId}, Date: {day}, Time: {time}, Date: {dayToDate}");
         }
 
         public void CreateMedicalRecord(string doctorId)
