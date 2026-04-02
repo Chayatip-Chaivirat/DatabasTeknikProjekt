@@ -468,7 +468,7 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("Fill in your Date of Birth (YYYY-MM-DD): ");
             string input = Console.ReadLine();
 
-            if (!TryParseDateInput(input, out DateTime birthDate))
+            if (!TryParseDateInput(input, out DateTime birthDate))  
             {
                 return;
             }
