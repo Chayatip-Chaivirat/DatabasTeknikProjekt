@@ -11,6 +11,49 @@ namespace MedicalApp_DatabasTeknik
             return new NpgsqlConnection(connString);
         }
 
+        // Input validation helpers
+        private bool ValidateNonEmptyInput(string input, string fieldName)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                Console.WriteLine($"{fieldName} cannot be empty. Please try again.");
+                return false;
+            }
+            return true;
+        }
+
+        private bool ValidateName(string name)
+        {
+            if (!ValidateNonEmptyInput(name, "Name"))
+                return false;
+            if (name.Any(char.IsDigit))
+            {
+                Console.WriteLine("Invalid name. Name cannot contain digits.");
+                return false;
+            }
+            return true;
+        }
+
+        private bool TryParseDateInput(string input, out DateTime date)
+        {
+            if (!DateTime.TryParse(input, out date))
+            {
+                Console.WriteLine("Invalid date format. Use YYYY-MM-DD.");
+                return false;
+            }
+            return true;
+        }
+
+        private bool TryParseTimeInput(string input, out TimeSpan time)
+        {
+            if (!TimeSpan.TryParse(input, out time))
+            {
+                Console.WriteLine("Invalid time format. Use HH:MM.");
+                return false;
+            }
+            return true;
+        }
+
         public string PatientLogin()
         {
             Console.Write("Patient ID: ");
@@ -18,6 +61,12 @@ namespace MedicalApp_DatabasTeknik
 
             Console.Write("Password: ");
             string password = Console.ReadLine();
+
+            if (!ValidateNonEmptyInput(id, "Patient ID") || !ValidateNonEmptyInput(password, "Password"))
+            {
+                Console.WriteLine("Invalid login.");
+                return null;
+            }
 
             using (var conn = GetUserConnection())
             {
@@ -49,6 +98,10 @@ namespace MedicalApp_DatabasTeknik
 
         public string RetrivePatientIdFromDatabase(string id)
         {
+            if (!ValidateNonEmptyInput(id, "Patient ID"))
+            {
+                return null;
+            }
             using (var conn = GetUserConnection())
             {
                 conn.Open();
@@ -78,6 +131,12 @@ namespace MedicalApp_DatabasTeknik
             string id = Console.ReadLine();
             Console.Write("Password: ");
             string password = Console.ReadLine();
+
+            if (!ValidateNonEmptyInput(id, "Doctor ID") || !ValidateNonEmptyInput(password, "Password"))
+            {
+                Console.WriteLine("Invalid login.");
+                return null;
+            }
             using (var conn = GetUserConnection())
             {
                 conn.Open();
@@ -409,9 +468,8 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("Fill in your Date of Birth (YYYY-MM-DD): ");
             string input = Console.ReadLine();
 
-            if (!DateTime.TryParse(input, out DateTime birthDate))
+            if (!TryParseDateInput(input, out DateTime birthDate))
             {
-                Console.WriteLine("Invalid date format. Use YYYY-MM-DD.");
                 return;
             }
 
@@ -555,6 +613,9 @@ namespace MedicalApp_DatabasTeknik
             Console.Write("Doctor ID: ");
             string doctorId = Console.ReadLine();
 
+            if (!ValidateNonEmptyInput(doctorId, "Doctor ID"))
+                return;
+
             if (!DoctorExists(doctorId))
             {
                 Console.WriteLine("Doctor does not exist!");
@@ -565,10 +626,20 @@ namespace MedicalApp_DatabasTeknik
 
             Console.Write("Choose Day: ");
             string day = Console.ReadLine();
+            if (!ValidateNonEmptyInput(day, "Day"))
+                return;
+
             DateOnly dayToDate = ConvertToDateTime(day);
+            if (dayToDate.Year == 1)
+            {
+                Console.WriteLine("Invalid day.");
+                return;
+            }
 
             Console.Write("Choose Time (HH:MM): ");
-            TimeSpan time = TimeSpan.Parse(Console.ReadLine());
+            string timeInput = Console.ReadLine();
+            if (!TryParseTimeInput(timeInput, out TimeSpan time))
+                return;
 
             using (var conn = GetUserConnection())
             {
@@ -650,6 +721,12 @@ namespace MedicalApp_DatabasTeknik
             Console.Write("Enter Appointment ID: ");
             string appointmentId = Console.ReadLine();
 
+            if (!int.TryParse(appointmentId, out int appointmentInt))
+            {
+                Console.WriteLine("Invalid appointment ID.");
+                return;
+            }
+
             Console.Write("Diagnosis: ");
             string diagnosis = Console.ReadLine();
 
@@ -670,7 +747,7 @@ namespace MedicalApp_DatabasTeknik
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("pid", patientId);
-                    cmd.Parameters.AddWithValue("aid", int.Parse(appointmentId));
+                    cmd.Parameters.AddWithValue("aid", appointmentInt);
                     cmd.Parameters.AddWithValue("diag", diagnosis);
                     cmd.Parameters.AddWithValue("pres", prescription);
                     cmd.Parameters.AddWithValue("desc", description);
@@ -733,9 +810,14 @@ namespace MedicalApp_DatabasTeknik
             string phone = Console.ReadLine();
 
             Console.Write("Date of birth (YYYY-MM-DD): ");
-            if (!DateTime.TryParse(Console.ReadLine(), out DateTime birthDate))
+            string dobInput = Console.ReadLine();
+            if (!TryParseDateInput(dobInput, out DateTime birthDate))
             {
-                Console.WriteLine("Invalid date format.");
+                return;
+            }
+
+            if (!ValidateNonEmptyInput(idNumber, "ID number") || !ValidateName(firstName) || !ValidateName(lastName) || !ValidateNonEmptyInput(address, "Address") || !ValidateNonEmptyInput(gender, "Gender") || !ValidateNonEmptyInput(phone, "Phone number"))
+            {
                 return;
             }
 
@@ -936,7 +1018,9 @@ namespace MedicalApp_DatabasTeknik
             string day = Console.ReadLine();
 
             Console.WriteLine("Enter time (HH:MM): ");
-            TimeSpan time = TimeSpan.Parse(Console.ReadLine());
+            string timeInput = Console.ReadLine();
+            if (!TryParseTimeInput(timeInput, out TimeSpan time))
+                return;
 
             Console.WriteLine("1. Set AVAILABLE");
             Console.WriteLine("2. Set UNAVAILABLE");
@@ -993,6 +1077,8 @@ namespace MedicalApp_DatabasTeknik
             Console.WriteLine("Updating Medical Record");
             Console.WriteLine("Enter Patient ID: ");
             string patientId = Console.ReadLine();
+            if (!ValidateNonEmptyInput(patientId, "Patient ID"))
+                return;
             ViewMedicalRecord(patientId);
             UpdatePatientPersonalInfoMenu();
             string updateChoice = Console.ReadLine();   
@@ -1011,6 +1097,8 @@ namespace MedicalApp_DatabasTeknik
                     Console.WriteLine("\n");
                     Console.WriteLine("Enter patient ID: ");
                     string patientID = Console.ReadLine();
+                    if (!ValidateNonEmptyInput(patientID, "Patient ID"))
+                        continue;
                     ViewPatientAppointments(patientID);
                 }
                 else if (doctorChoice == "2")
@@ -1133,6 +1221,10 @@ namespace MedicalApp_DatabasTeknik
         {
             Console.WriteLine("Fill in Doctor's Full Name: ");
             string fullName = Console.ReadLine();
+            if (!ValidateName(fullName))
+            {
+                return;
+            }
             using (var conn = GetUserConnection())
             {
                 conn.Open();
@@ -1163,6 +1255,8 @@ namespace MedicalApp_DatabasTeknik
         {
             Console.WriteLine("Fill in Doctor's Phone Number: ");
             string phoneNumber = Console.ReadLine();
+            if (!ValidateNonEmptyInput(phoneNumber, "Phone number"))
+                return;
            using (var conn = GetUserConnection())
             {
                 conn.Open();
@@ -1399,12 +1493,16 @@ namespace MedicalApp_DatabasTeknik
                 string updateChoice = Console.ReadLine();
                 Console.WriteLine("Enter Doctor ID to update: ");
                 string doctorID = Console.ReadLine();
+                if (!ValidateNonEmptyInput(doctorID, "Doctor ID"))
+                    return;
                 FillInDoctorInformationHandler(updateChoice, doctorID);
             }
             else if (doctorChoice == "3") 
             {
                 Console.WriteLine("Enter Doctor ID to update: ");
                 string doctorID = Console.ReadLine();
+                if (!ValidateNonEmptyInput(doctorID, "Doctor ID"))
+                    return;
                 DeleteDoctor(doctorID); 
             }
             else if (doctorChoice == "4") 
